@@ -60,7 +60,106 @@ $myActiveOrders = $stmt->fetchAll();
     
     <div class="main-content">
         <div class="page-header">
-            <h1>👋 Xin chào Shipper, <?= htmlspecialchars($_SESSION['user_name']) ?>!</h1>
+            <h1>🏠 Trang chủ</h1>
+            <span style="color: #7f8c8d; font-size: 15px;"><?= date('d/m/Y H:i') ?></span>
+        </div>
+        
+        <!-- Welcome Banner -->
+        <style>
+            .welcome-banner {
+                background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.3) 100%), url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&h=400&fit=crop');
+                background-size: cover;
+                background-position: center;
+                border-radius: 20px;
+                padding: 30px 40px;
+                color: white;
+                margin-bottom: 30px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative;
+                overflow: hidden;
+            }
+            .welcome-banner h2 {
+                font-size: 26px;
+                font-weight: 700;
+                font-style: italic;
+                margin-bottom: 15px;
+                white-space: nowrap;
+            }
+            .welcome-badges {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            .welcome-badge {
+                background: rgba(255,255,255,0.2);
+                padding: 6px 16px;
+                border-radius: 20px;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .welcome-text {
+                opacity: 0.9;
+                font-size: 14px;
+            }
+            .welcome-logo {
+                text-align: center;
+            }
+            .welcome-logo img {
+                width: 180px;
+                height: 180px;
+                border-radius: 30px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            }
+            .welcome-actions {
+                display: flex;
+                gap: 12px;
+            }
+            .welcome-btn {
+                background: rgba(255,255,255,0.15);
+                border: 1px solid rgba(255,255,255,0.3);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 25px;
+                text-decoration: none;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.3s;
+            }
+            .welcome-btn:hover {
+                background: rgba(255,255,255,0.25);
+            }
+        </style>
+        
+        <?php
+        $hour = date('H');
+        if ($hour < 12) $greeting = 'Chào buổi sáng';
+        elseif ($hour < 18) $greeting = 'Chào buổi chiều';
+        else $greeting = 'Chào buổi tối';
+        ?>
+        
+        <div class="welcome-banner">
+            <div style="flex: 1; min-width: 0;">
+                <h2><?= $greeting ?>, Shipper <?= htmlspecialchars($_SESSION['user_name']) ?>!</h2>
+                <div class="welcome-badges">
+                    <span class="welcome-badge">🚚 Shipper</span>
+                    <span class="welcome-badge"><?= $shipperInfo['is_available'] ? '✅ Đang hoạt động' : '⏸️ Tạm nghỉ' ?></span>
+                </div>
+                <p class="welcome-text">Chọn một chức năng từ menu bên trái để bắt đầu.</p>
+            </div>
+            <div class="welcome-logo">
+                <img src="../logo.png" alt="Logo">
+            </div>
+            <div class="welcome-actions">
+                <a href="available.php" class="welcome-btn">📦 Đơn có sẵn</a>
+                <a href="my_orders.php" class="welcome-btn">🚚 Đơn của tôi</a>
+                <a href="earnings.php" class="welcome-btn">💰 Thu nhập</a>
+            </div>
         </div>
         
         <!-- Thông báo đơn hàng mới -->

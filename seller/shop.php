@@ -110,50 +110,96 @@ $base = getBaseUrl();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý cửa hàng - Seller</title>
-    <link rel="stylesheet" href="../assets/css/seller.css">
+    <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
     <style>
-        .shop-container { display: grid; grid-template-columns: 1fr 350px; gap: 25px; }
-        .shop-form { background: white; border-radius: 15px; padding: 25px; }
-        .shop-sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .shop-preview { background: white; border-radius: 15px; overflow: hidden; }
-        .shop-preview-banner { height: 150px; background: linear-gradient(135deg, #ff6b35, #f7931e); display: flex; align-items: center; justify-content: center; }
+        .shop-container { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
+        .shop-form { background: white; border-radius: 20px; padding: 35px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .shop-form h2 { font-size: 22px; color: #1f2937; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6; }
+        .shop-sidebar { display: flex; flex-direction: column; gap: 25px; }
+        .shop-preview { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .shop-preview-banner { height: 180px; background: linear-gradient(135deg, #059669, #10b981); display: flex; align-items: center; justify-content: center; }
         .shop-preview-banner img { width: 100%; height: 100%; object-fit: cover; }
-        .shop-preview-info { padding: 20px; }
-        .shop-preview-info h3 { margin-bottom: 10px; }
-        .shop-preview-info p { color: #7f8c8d; font-size: 14px; margin-bottom: 5px; }
+        .shop-preview-info { padding: 25px; }
+        .shop-preview-info h3 { margin-bottom: 15px; font-size: 22px; color: #1f2937; }
+        .shop-preview-info p { color: #6b7280; font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         
-        .stats-card { background: white; border-radius: 15px; padding: 20px; }
+        .stats-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .stats-card h3 { font-size: 18px; color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .stat-item { text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px; }
-        .stat-value { font-size: 24px; font-weight: bold; color: #ff6b35; }
-        .stat-label { font-size: 12px; color: #7f8c8d; margin-top: 5px; }
+        .stat-item { text-align: center; padding: 20px 15px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 15px; transition: all 0.3s; }
+        .stat-item:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(5,150,105,0.15); }
+        .stat-value { font-size: 28px; font-weight: 700; color: #059669; }
+        .stat-label { font-size: 13px; color: #6b7280; margin-top: 8px; font-weight: 500; }
         
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50; }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #ff6b35; }
-        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 15px; }
+        .form-group input, .form-group textarea { 
+            width: 100%; 
+            padding: 14px 18px; 
+            border: 2px solid #e5e7eb; 
+            border-radius: 12px; 
+            font-size: 15px; 
+            box-sizing: border-box; 
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+        .form-group input:focus, .form-group textarea:focus { 
+            outline: none; 
+            border-color: #059669; 
+            background: white;
+            box-shadow: 0 0 0 3px rgba(5,150,105,0.1);
+        }
+        .form-group textarea { min-height: 120px; resize: vertical; }
         
-        .image-upload { border: 2px dashed #e0e0e0; border-radius: 10px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s; }
-        .image-upload:hover { border-color: #ff6b35; background: #fff8f5; }
+        .image-upload { 
+            border: 2px dashed #d1d5db; 
+            border-radius: 15px; 
+            padding: 40px; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: all 0.3s; 
+            background: #f9fafb;
+        }
+        .image-upload:hover { border-color: #059669; background: #f0fdf4; }
         .image-upload input { display: none; }
-        .image-upload .icon { font-size: 40px; margin-bottom: 10px; }
-        .image-upload p { color: #7f8c8d; font-size: 14px; }
-        .image-preview { max-width: 100%; max-height: 200px; margin-top: 15px; border-radius: 8px; display: none; }
+        .image-upload .icon { font-size: 50px; margin-bottom: 15px; }
+        .image-upload p { color: #6b7280; font-size: 15px; }
+        .image-preview { max-width: 100%; max-height: 200px; margin-top: 20px; border-radius: 12px; display: none; }
         
-        .btn-save { background: #ff6b35; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-save:hover { background: #e55a2b; }
+        .btn-save { 
+            background: linear-gradient(135deg, #059669, #047857); 
+            color: white; 
+            border: none; 
+            padding: 16px 35px; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: 600;
+            cursor: pointer; 
+            width: 100%; 
+            margin-top: 15px; 
+            box-shadow: 0 4px 15px rgba(5,150,105,0.3);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(5,150,105,0.4); }
         
-        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-        .status-active { background: #d4edda; color: #155724; }
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-blocked { background: #f8d7da; color: #721c24; }
+        .status-badge { display: inline-block; padding: 6px 14px; border-radius: 25px; font-size: 13px; font-weight: 600; }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-blocked { background: #fee2e2; color: #991b1b; }
         
-        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
-        .alert-success { background: #d4edda; color: #155724; }
-        .alert-error { background: #f8d7da; color: #721c24; }
+        .alert { padding: 18px 22px; border-radius: 12px; margin-bottom: 25px; font-size: 15px; }
+        .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
         
-        @media (max-width: 900px) {
+        .info-item { padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+        .info-item:last-child { border-bottom: none; }
+        .info-item strong { color: #374151; }
+        
+        @media (max-width: 1000px) {
             .shop-container { grid-template-columns: 1fr; }
         }
     </style>

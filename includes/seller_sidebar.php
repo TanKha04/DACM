@@ -33,17 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     }
 }
 ?>
-<div class="sidebar">
-    <div class="sidebar-header">
-        <a href="<?= $base ?>/home.php" style="text-decoration: none; color: white; display: flex; align-items: center; gap: 12px;">
+<div class="sidebar" style="background: linear-gradient(135deg, #059669, #047857) !important;">
+    <div class="sidebar-header" style="background: rgba(255,255,255,0.1) !important;">
+        <a href="<?= $base ?>/seller/dashboard.php" style="text-decoration: none; color: white; display: flex; align-items: center; gap: 12px;">
             <img src="<?= $base ?>/logo.png" alt="Logo" style="width: 45px; height: 45px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <span style="font-size: 20px; font-weight: 700;">Seller Panel</span>
         </a>
     </div>
     <nav class="sidebar-nav">
-        <a href="<?= $base ?>/seller/dashboard.php" class="<?= $currentPage == 'dashboard.php' ? 'active' : '' ?>">
-            <span class="icon">📊</span> Dashboard
-        </a>
         <a href="<?= $base ?>/seller/products.php" class="<?= $currentPage == 'products.php' ? 'active' : '' ?>">
             <span class="icon">🍔</span> Sản phẩm
         </a>

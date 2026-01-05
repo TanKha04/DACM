@@ -66,7 +66,7 @@ $messages = $stmt->fetchAll();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat với <?= htmlspecialchars($order['customer_name']) ?> - Seller</title>
-    <link rel="stylesheet" href="../assets/css/seller.css">
+    <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
     <style>
         .chat-container { max-width: 600px; margin: 0 auto; }
         .chat-header { background: #4CAF50; color: white; padding: 15px 20px; border-radius: 12px 12px 0 0; display: flex; align-items: center; gap: 15px; }

@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đổi mật khẩu</title>
-    <link rel="stylesheet" href="../assets/css/seller.css">
+    <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
     <style>
         .change-password-form { max-width: 400px; margin: 40px auto; background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
         .form-group { margin-bottom: 18px; }

@@ -27,7 +27,7 @@ $userLng = $userLocation['lng'];
 // Lấy cấu hình khoảng cách tối đa
 $stmt = $pdo->query("SELECT max_shop_distance FROM shipping_config LIMIT 1");
 $config = $stmt->fetch();
-$maxDistance = $config['max_shop_distance'] ?? 15;
+$maxDistance = $config['max_shop_distance'] ?? 5;
 
 // Tìm kiếm
 $search = trim($_GET['q'] ?? '');

@@ -26,16 +26,12 @@ $base = getBaseUrl();
 </style>
 <div class="sidebar">
     <div class="sidebar-header">
-        <a href="<?= $base ?>/home.php" style="text-decoration: none; color: white; display: flex; align-items: center; gap: 10px;">
+        <a href="<?= $base ?>/admin/dashboard.php" style="text-decoration: none; color: white; display: flex; align-items: center; gap: 10px;">
             <img src="<?= $base ?>/logo.png" alt="Logo" style="width: 40px; height: 40px; border-radius: 8px;">
             <span style="font-size: 20px; font-weight: bold;">FastFood Admin</span>
         </a>
     </div>
     <nav class="sidebar-nav">
-        <a href="<?= $base ?>/admin/dashboard.php" class="<?= $currentPage == 'dashboard.php' ? 'active' : '' ?>">
-            <span>📊</span> Dashboard
-        </a>
-        <div class="divider"></div>
         <a href="<?= $base ?>/admin/users.php" class="<?= $currentPage == 'users.php' ? 'active' : '' ?>">
             <span>👤</span> Quản lý Users
         </a>

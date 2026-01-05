@@ -87,7 +87,7 @@ $promotions = $stmt->fetchAll();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khuyến mãi - Seller</title>
-    <link rel="stylesheet" href="../assets/css/seller.css">
+    <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
     <style>
         .promo-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; border-left: 4px solid #27ae60; }
         .promo-card.inactive { border-left-color: #95a5a6; opacity: 0.7; }

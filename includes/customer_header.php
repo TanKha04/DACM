@@ -4,7 +4,7 @@ $base = getBaseUrl();
 ?>
 <header class="main-header">
     <div class="header-container">
-        <a href="<?= $base ?>/home.php" class="logo">
+        <a href="<?= $base ?>/customer/index.php" class="logo">
             <img src="<?= $base ?>/logo.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 6px; vertical-align: middle; margin-right: 8px;">
             FastFood
         </a>

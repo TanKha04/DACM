@@ -359,7 +359,7 @@ CREATE TABLE order_messages (
 -- =============================================
 ALTER TABLE users ADD COLUMN lat DECIMAL(10, 8) DEFAULT NULL;
 ALTER TABLE users ADD COLUMN lng DECIMAL(11, 8) DEFAULT NULL;
-ALTER TABLE shipping_config ADD COLUMN max_shop_distance INT DEFAULT 15;
+ALTER TABLE shipping_config ADD COLUMN max_shop_distance INT DEFAULT 5;
 
 
 -- =============================================

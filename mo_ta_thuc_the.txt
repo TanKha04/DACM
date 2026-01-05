@@ -1,0 +1,148 @@
+MÔ TẢ CÁC THỰC THỂ TRONG SƠ ĐỒ ERD
+
+Bảng 2.1 Bảng USERS (Người dùng)
+
+Thuộc tính	Mô tả	Kiểu dữ liệu	Ràng buộc
+id	Mã người dùng	Integer	PRIMARY KEY
+name	Tên người dùng	VARCHAR(100)	NOT NULL
+email	Địa chỉ email	VARCHAR(100)	NOT NULL, UNIQUE
+password	Mật khẩu đã mã hóa	VARCHAR(255)	NOT NULL
+phone	Số điện thoại	VARCHAR(20)	
+role	Vai trò người dùng	ENUM	NOT NULL
+status	Trạng thái tài khoản	ENUM	NOT NULL
+
+
+Bảng 2.2 Bảng SHOPS (Cửa hàng)
+
+Thuộc tính	Mô tả	Kiểu dữ liệu	Ràng buộc
+id	Mã cửa hàng	Integer	PRIMARY KEY
+name	Tên cửa hàng	VARCHAR(100)	NOT NULL
+description	Mô tả cửa hàng	Text	
+address	Địa chỉ cửa hàng	Text	NOT NULL
+phone	Số điện thoại	VARCHAR(20)	
+status	Trạng thái hoạt động	ENUM	NOT NULL
+user_id	Mã chủ cửa hàng	Integer	FOREIGN KEY
+
+
+Bảng 2.3 Bảng PRODUCTS (Sản phẩm)
+
+Thuộc tính	Mô tả	Kiểu dữ liệu	Ràng buộc
+id	Mã sản phẩm	Integer	PRIMARY KEY
+name	Tên sản phẩm	VARCHAR(100)	NOT NULL
+description	Mô tả sản phẩm	Text	
+price	Giá sản phẩm	Decimal(10,2)	NOT NULL
+category	Danh mục sản phẩm	VARCHAR(50)	
+status	Trạng thái sản phẩm	ENUM	NOT NULL
+shop_id	Mã cửa hàng	Integer	FOREIGN KEY
+
+
+Bảng 2.4 Bảng ORDERS (Đơn hàng)
+
+Thuộc tính	Mô tả	Kiểu dữ liệu	Ràng buộc
+id	Mã đơn hàng	Integer	PRIMARY KEY
+total_amount	Tổng tiền đơn hàng	Decimal(10,2)	NOT NULL
+shipping_fee	Phí vận chuyển	Decimal(10,2)	
+delivery_address	Địa chỉ giao hàng	Text	NOT NULL
+status	Trạng thái đơn hàng	ENUM	NOT NULL
+payment_method	Phương thức thanh toán	ENUM	NOT NULL
+payment_status	Trạng thái thanh toán	ENUM	NOT NULL
+created	Thời gian tạo đơn	Timestamp	NOT NULL
+customer_id	Mã khách hàng	Integer	FOREIGN KEY
+shipper_id	Mã shipper giao hàng	Integer	FOREIGN KEY
+shop_id	Mã cửa hàng	Integer	FOREIGN KEY
+
+
+Bảng 2.5 Bảng ORDER_ITEMS (Chi tiết đơn hàng)
+
+Thuộc tính	Mô tả	Kiểu dữ liệu	Ràng buộc
+id	Mã chi tiết đơn hàng	Integer	PRIMARY KEY
+product_name	Tên sản phẩm	VARCHAR(150)	NOT NULL
+quantity	Số lượng	Integer	NOT NULL
+price	Đơn giá	Decimal(10,2)	NOT NULL
+subtotal	Thành tiền	Decimal(10,2)	NOT NULL
+order_id	Mã đơn hàng	Integer	FOREIGN KEY
+product_id	Mã sản phẩm	Integer	FOREIGN KEY
+
+
+Bảng 2.6 Bảng CART (Giỏ hàng)
+
+Thuộc tính	Mô tả	Kiểu dữ liệu	Ràng buộc
+id	Mã giỏ hàng	Integer	PRIMARY KEY
+quantity	Số lượng sản phẩm	Integer	NOT NULL
+created_at	Thời gian thêm vào giỏ	Timestamp	NOT NULL
+user_id	Mã người dùng	Integer	FOREIGN KEY
+product_id	Mã sản phẩm	Integer	FOREIGN KEY
+
+
+Bảng 2.7 Bảng REVIEWS (Đánh giá)
+
+Thuộc tính	Mô tả	Kiểu dữ liệu	Ràng buộc
+id	Mã đánh giá	Integer	PRIMARY KEY
+rating	Điểm đánh giá (1-5)	Integer	NOT NULL
+comment	Nội dung đánh giá	Text	
+reply	Phản hồi từ cửa hàng	Text	
+created	Thời gian đánh giá	Timestamp	NOT NULL
+user_id	Mã người đánh giá	Integer	FOREIGN KEY
+order_id	Mã đơn hàng	Integer	FOREIGN KEY
+
+
+Bảng 2.8 Bảng PAYMENTS (Thanh toán)
+
+Thuộc tính	Mô tả	Kiểu dữ liệu	Ràng buộc
+id	Mã thanh toán	Integer	PRIMARY KEY
+amount	Số tiền thanh toán	Decimal(10,2)	NOT NULL
+method	Phương thức thanh toán	ENUM	NOT NULL
+status	Trạng thái thanh toán	ENUM	NOT NULL
+transaction_id	Mã giao dịch	VARCHAR(100)	
+order_id	Mã đơn hàng	Integer	FOREIGN KEY
+
+
+MÔ TẢ CÁC MỐI QUAN HỆ
+
+1. USERS - SHOPS (Quan hệ "sở_hữu")
+Bản số: 1:1
+Mô tả: Một người dùng (seller) sở hữu một cửa hàng
+
+2. USERS - ORDERS (Quan hệ "đặt_hàng")
+Bản số: 1:n
+Mô tả: Một khách hàng có thể đặt nhiều đơn hàng
+
+3. USERS - ORDERS (Quan hệ "giao_hàng")
+Bản số: 1:n
+Mô tả: Một shipper có thể giao nhiều đơn hàng
+
+4. SHOPS - PRODUCTS (Quan hệ "thuộc_shop")
+Bản số: 1:n
+Mô tả: Một cửa hàng có nhiều sản phẩm
+
+5. SHOPS - ORDERS (Quan hệ "bán")
+Bản số: 1:n
+Mô tả: Một cửa hàng có nhiều đơn hàng
+
+6. ORDERS - ORDER_ITEMS (Quan hệ "chứa")
+Bản số: 1:n
+Mô tả: Một đơn hàng chứa nhiều chi tiết sản phẩm
+
+7. PRODUCTS - ORDER_ITEMS (Quan hệ "sản_phẩm")
+Bản số: 1:n
+Mô tả: Một sản phẩm có thể xuất hiện trong nhiều chi tiết đơn hàng
+
+8. ORDERS - REVIEWS (Quan hệ "review_order")
+Bản số: 1:1
+Mô tả: Một đơn hàng có một đánh giá
+
+9. USERS - REVIEWS (Quan hệ "đánh_giá")
+Bản số: 1:n
+Mô tả: Một người dùng có thể viết nhiều đánh giá
+
+10. ORDERS - PAYMENTS (Quan hệ "thanh_toán")
+Bản số: 1:n
+Mô tả: Một đơn hàng có thể có nhiều giao dịch thanh toán
+
+11. USERS - CART (Quan hệ "thêm_giỏ")
+Bản số: 1:n
+Mô tả: Một người dùng có nhiều sản phẩm trong giỏ hàng
+
+12. PRODUCTS - CART (Quan hệ "cart_products")
+Bản số: 1:n
+Mô tả: Một sản phẩm có thể được thêm vào nhiều giỏ hàng

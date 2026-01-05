@@ -251,7 +251,7 @@ else $greeting = 'Chào buổi tối';
     
     <div class="main-content">
         <div class="page-header">
-            <h1>📊 Dashboard</h1>
+            <h1>🏠 Trang chủ</h1>
             <span style="color: #7f8c8d; font-size: 15px;"><?= date('d/m/Y H:i') ?></span>
         </div>
         

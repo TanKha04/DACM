@@ -57,7 +57,7 @@ $reviews = $stmt->fetchAll();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đánh giá - Seller</title>
-    <link rel="stylesheet" href="../assets/css/seller.css">
+    <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
     <style>
         .rating-overview { display: flex; gap: 40px; align-items: center; margin-bottom: 30px; }
         .rating-big { text-align: center; }

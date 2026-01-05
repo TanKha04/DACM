@@ -78,82 +78,93 @@ $base = getBaseUrl();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tin nhắn - Seller Panel</title>
-    <link rel="stylesheet" href="../assets/css/seller.css">
+    <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
     <style>
         .messages-container {
             display: flex;
             height: calc(100vh - 60px);
-            background: #f5f5f5;
+            background: #f8fafc;
         }
         
         .sidebar-panel {
-            width: 320px;
+            width: 380px;
             background: white;
-            border-right: 1px solid #e0e0e0;
+            border-right: 1px solid #e5e7eb;
             display: flex;
             flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
         }
         
         .tabs {
             display: flex;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
         }
         
         .tab {
             flex: 1;
-            padding: 15px 10px;
+            padding: 18px 12px;
             text-align: center;
             cursor: pointer;
-            font-size: 13px;
-            border-bottom: 2px solid transparent;
+            font-size: 15px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
             transition: all 0.3s;
+            color: #6b7280;
         }
         
         .tab:hover, .tab.active {
-            background: #e3f2fd;
-            border-bottom-color: #2196f3;
-            color: #2196f3;
+            background: #ecfdf5;
+            border-bottom-color: #059669;
+            color: #059669;
         }
         
         .tab .badge {
-            background: #2196f3;
+            background: #059669;
             color: white;
             border-radius: 50%;
-            min-width: 18px;
-            height: 18px;
+            min-width: 22px;
+            height: 22px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
-            margin-left: 5px;
+            font-size: 12px;
+            margin-left: 8px;
+            font-weight: 600;
         }
         
         .sidebar-header {
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: white;
         }
         
         .sidebar-header h3 {
             margin: 0;
-            font-size: 16px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
         }
         
         .btn-icon {
-            background: #2196f3;
+            background: linear-gradient(135deg, #059669, #047857);
             color: white;
             border: none;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(5,150,105,0.3);
+            transition: all 0.3s;
         }
         
         .btn-icon:hover {
-            background: #1976d2;
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(5,150,105,0.4);
         }
         
         .list-content {
@@ -162,31 +173,32 @@ $base = getBaseUrl();
         }
         
         .list-item {
-            padding: 12px 15px;
+            padding: 16px 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
             cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
+            border-bottom: 1px solid #f3f4f6;
+            transition: all 0.2s;
         }
         
         .list-item:hover, .list-item.active {
-            background: #e3f2fd;
+            background: #ecfdf5;
         }
         
         .avatar {
-            width: 45px;
-            height: 45px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #2196f3, #00bcd4);
+            background: linear-gradient(135deg, #059669, #10b981);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 20px;
             flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(5,150,105,0.2);
         }
         
         .avatar img {
@@ -203,51 +215,57 @@ $base = getBaseUrl();
         
         .item-name {
             font-weight: 600;
-            margin-bottom: 3px;
+            font-size: 16px;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            color: #1f2937;
         }
         
         .item-meta {
-            font-size: 13px;
-            color: #666;
+            font-size: 14px;
+            color: #6b7280;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         
         .role-badge {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 8px;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
             text-transform: capitalize;
+            font-weight: 500;
         }
         
-        .role-badge.customer { background: #e3f2fd; color: #1976d2; }
-        .role-badge.seller { background: #fff3e0; color: #f57c00; }
-        .role-badge.shipper { background: #e8f5e9; color: #388e3c; }
+        .role-badge.customer { background: #dbeafe; color: #1e40af; }
+        .role-badge.seller { background: #dcfce7; color: #166534; }
+        .role-badge.shipper { background: #fef3c7; color: #92400e; }
         
         .unread-dot {
-            width: 10px;
-            height: 10px;
-            background: #2196f3;
+            width: 12px;
+            height: 12px;
+            background: #059669;
             border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(5,150,105,0.2);
         }
         
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
+            background: #f8fafc;
         }
         
         .chat-header {
-            padding: 15px 20px;
+            padding: 20px 25px;
             background: white;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e5e7eb;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         
         .chat-header-info {
@@ -255,116 +273,130 @@ $base = getBaseUrl();
         }
         
         .chat-header-info h4 {
-            margin: 0 0 4px 0;
+            margin: 0 0 6px 0;
+            font-size: 18px;
+            color: #1f2937;
         }
         
         .chat-actions {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
         
         .chat-actions button {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
+            font-weight: 500;
             transition: all 0.3s;
         }
         
         .btn-friend {
-            background: #e3f2fd;
-            color: #1976d2;
+            background: #ecfdf5;
+            color: #059669;
         }
         
         .btn-friend:hover {
-            background: #bbdefb;
+            background: #d1fae5;
         }
         
         .btn-block {
-            background: #ffebee;
-            color: #c62828;
+            background: #fee2e2;
+            color: #dc2626;
         }
         
         .btn-block:hover {
-            background: #ffcdd2;
+            background: #fecaca;
         }
         
         .btn-unblock {
-            background: #e8f5e9;
-            color: #388e3c;
+            background: #dcfce7;
+            color: #166534;
         }
         
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            background: #fafafa;
+            gap: 12px;
+            background: #f8fafc;
         }
         
         .message {
             max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 18px;
+            padding: 14px 20px;
+            border-radius: 20px;
             word-wrap: break-word;
+            font-size: 15px;
+            line-height: 1.5;
         }
         
         .message.sent {
             align-self: flex-end;
-            background: linear-gradient(135deg, #2196f3, #00bcd4);
+            background: linear-gradient(135deg, #059669, #10b981);
             color: white;
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 4px 12px rgba(5,150,105,0.25);
         }
         
         .message.received {
             align-self: flex-start;
             background: white;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            color: #1f2937;
         }
         
         .message-time {
-            font-size: 11px;
+            font-size: 12px;
             opacity: 0.7;
-            margin-top: 4px;
+            margin-top: 6px;
         }
         
         .chat-input {
-            padding: 15px 20px;
+            padding: 20px 25px;
             background: white;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid #e5e7eb;
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
         
         .chat-input input {
             flex: 1;
-            padding: 12px 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 25px;
+            padding: 14px 24px;
+            border: 2px solid #e5e7eb;
+            border-radius: 30px;
             outline: none;
-            font-size: 14px;
+            font-size: 15px;
+            transition: all 0.3s;
         }
         
         .chat-input input:focus {
-            border-color: #2196f3;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(5,150,105,0.1);
         }
         
         .chat-input button {
-            background: linear-gradient(135deg, #2196f3, #00bcd4);
+            background: linear-gradient(135deg, #059669, #047857);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
+            padding: 14px 30px;
+            border-radius: 30px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(5,150,105,0.3);
+            transition: all 0.3s;
         }
         
         .chat-input button:hover {
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(5,150,105,0.4);
         }
         
         .empty-chat {
@@ -372,7 +404,7 @@ $base = getBaseUrl();
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #999;
+            color: #9ca3af;
         }
         
         .empty-chat-content {
@@ -380,34 +412,50 @@ $base = getBaseUrl();
         }
         
         .empty-chat-content .icon {
-            font-size: 64px;
-            margin-bottom: 16px;
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-chat-content h3 {
+            font-size: 24px;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+        
+        .empty-chat-content p {
+            font-size: 16px;
         }
         
         .blocked-notice {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px 20px;
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 18px 25px;
             text-align: center;
+            font-size: 15px;
+            font-weight: 500;
         }
         
         /* Request actions */
         .request-actions {
             display: flex;
-            gap: 6px;
+            gap: 8px;
         }
         
         .request-actions button {
-            padding: 6px 12px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 15px;
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
         }
         
-        .btn-accept { background: #4caf50; color: white; }
-        .btn-reject { background: #f44336; color: white; }
-        .btn-cancel { background: #9e9e9e; color: white; }
+        .btn-accept { background: #059669; color: white; }
+        .btn-accept:hover { background: #047857; }
+        .btn-reject { background: #ef4444; color: white; }
+        .btn-reject:hover { background: #dc2626; }
+        .btn-cancel { background: #9ca3af; color: white; }
         
         /* Modal */
         .modal {
@@ -429,15 +477,16 @@ $base = getBaseUrl();
         
         .modal-content {
             background: white;
-            border-radius: 12px;
-            width: 420px;
+            border-radius: 20px;
+            width: 480px;
             max-height: 80vh;
             overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
         }
         
         .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 25px;
+            border-bottom: 1px solid #e5e7eb;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -445,34 +494,43 @@ $base = getBaseUrl();
         
         .modal-header h3 {
             margin: 0;
+            font-size: 20px;
+            color: #1f2937;
         }
         
         .modal-close {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
-            color: #666;
+            color: #9ca3af;
+            transition: color 0.3s;
+        }
+        
+        .modal-close:hover {
+            color: #ef4444;
         }
         
         .modal-body {
-            padding: 20px;
-            max-height: 400px;
+            padding: 25px;
+            max-height: 450px;
             overflow-y: auto;
         }
         
         .search-box {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #e0e0e0;
-            border-radius: 25px;
-            margin-bottom: 15px;
-            font-size: 14px;
+            padding: 14px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 30px;
+            margin-bottom: 20px;
+            font-size: 15px;
             outline: none;
+            transition: all 0.3s;
         }
         
         .search-box:focus {
-            border-color: #2196f3;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(5,150,105,0.1);
         }
     </style>
 </head>

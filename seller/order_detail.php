@@ -107,7 +107,7 @@ $statusLabels = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chi tiết đơn hàng #<?= $orderId ?> - Seller</title>
-    <link rel="stylesheet" href="../assets/css/seller.css">
+    <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
     <style>
         .order-grid { display: grid; grid-template-columns: 1fr 350px; gap: 25px; }
         .info-card { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; }

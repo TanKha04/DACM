@@ -98,7 +98,7 @@ foreach ($stmt->fetchAll() as $row) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý đơn hàng - Seller</title>
-    <link rel="stylesheet" href="../assets/css/seller.css">
+    <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
     <style>
         .status-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
         .status-tab { padding: 10px 20px; background: white; border-radius: 25px; text-decoration: none; color: #666; }

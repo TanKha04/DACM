@@ -1,0 +1,19 @@
+1.1 Mô tả đề tài
+
+	Đề tài "Website bán đồ ăn" là một hệ thống thương mại điện tử chuyên về lĩnh vực đặt và giao đồ ăn trực tuyến. Hệ thống được xây dựng nhằm kết nối giữa khách hàng, cửa hàng bán đồ ăn và người giao hàng trên một nền tảng web thống nhất.
+
+	Hệ thống được thiết kế với 4 vai trò người dùng chính bao gồm: Khách hàng (Customer), Người bán (Seller), Người giao hàng (Shipper) và Quản trị viên (Admin). Mỗi vai trò có giao diện và chức năng riêng biệt phù hợp với nhu cầu sử dụng.
+
+	Đối với khách hàng, hệ thống cho phép đăng ký tài khoản, đăng nhập, duyệt danh sách cửa hàng và sản phẩm, thêm món ăn vào giỏ hàng, đặt hàng và thanh toán. Khách hàng có thể theo dõi trạng thái đơn hàng theo thời gian thực, nhắn tin trực tiếp với cửa hàng và người giao hàng, đánh giá sản phẩm và dịch vụ sau khi nhận hàng. Ngoài ra, khách hàng còn có thể sử dụng mã khuyến mãi và voucher để được giảm giá.
+
+	Đối với người bán, hệ thống cung cấp chức năng đăng ký cửa hàng, quản lý thông tin cửa hàng, thêm và chỉnh sửa sản phẩm, quản lý danh mục món ăn. Người bán có thể xem và xử lý đơn hàng, tạo combo sản phẩm, thiết lập chương trình khuyến mãi, theo dõi doanh thu và xem đánh giá từ khách hàng. Hệ thống còn hỗ trợ người bán nhắn tin với khách hàng để trao đổi về đơn hàng.
+
+	Đối với người giao hàng, hệ thống cho phép đăng ký làm shipper, cập nhật trạng thái sẵn sàng nhận đơn, xem danh sách đơn hàng cần giao trong khu vực. Shipper có thể nhận đơn, cập nhật trạng thái giao hàng, nhắn tin với khách hàng và theo dõi thu nhập từ việc giao hàng.
+
+	Đối với quản trị viên, hệ thống cung cấp dashboard tổng quan về hoạt động kinh doanh, quản lý người dùng, duyệt và quản lý cửa hàng, quản lý danh mục sản phẩm. Admin có thể tạo voucher toàn hệ thống, xem báo cáo tài chính, quản lý đơn hàng, xử lý yêu cầu hỗ trợ từ người dùng và cấu hình các thông số hệ thống như phí giao hàng, tỷ lệ hoa hồng.
+
+	Hệ thống tích hợp tính năng chat realtime cho phép khách hàng trao đổi trực tiếp với cửa hàng về sản phẩm và đơn hàng, đồng thời có thể liên lạc với shipper trong quá trình giao hàng. Điều này giúp nâng cao trải nghiệm người dùng và giải quyết các vấn đề phát sinh nhanh chóng.
+
+	Hệ thống hỗ trợ nhiều phương thức thanh toán bao gồm thanh toán tiền mặt khi nhận hàng (COD), thanh toán bằng thẻ và ví điện tử. Phí giao hàng được tính tự động dựa trên khoảng cách từ cửa hàng đến địa chỉ giao hàng của khách.
+
+	Về mặt kỹ thuật, hệ thống được xây dựng trên nền tảng PHP kết hợp với cơ sở dữ liệu MySQL. Giao diện người dùng được thiết kế responsive sử dụng HTML, CSS và JavaScript, đảm bảo hiển thị tốt trên cả máy tính và thiết bị di động.

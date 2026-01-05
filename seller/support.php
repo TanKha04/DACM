@@ -60,7 +60,7 @@ $statusLabels = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hỗ trợ - Seller Panel</title>
-    <link rel="stylesheet" href="../assets/css/seller.css">
+    <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
     <style>
         .support-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
         .form-section { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: fit-content; }

@@ -27,7 +27,7 @@ $userLng = $user['lng'];
 // Lấy cấu hình khoảng cách tối đa
 $stmt = $pdo->query("SELECT max_shop_distance FROM shipping_config LIMIT 1");
 $config = $stmt->fetch();
-$maxDistance = $config['max_shop_distance'] ?? 15;
+$maxDistance = $config['max_shop_distance'] ?? 5;
 
 // Thống kê
 $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM orders WHERE customer_id = ?");
@@ -81,9 +81,101 @@ if (empty($products)) {
     <?php include '../includes/customer_header.php'; ?>
     
     <div class="container">
-        <div class="welcome-section">
-            <h1>Xin chào Khách hàng, <?= htmlspecialchars($user['name']) ?>! 👋</h1>
-            <p>Hôm nay bạn muốn ăn gì?</p>
+        <!-- Welcome Banner -->
+        <style>
+            .welcome-banner {
+                background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.3) 100%), url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&h=400&fit=crop');
+                background-size: cover;
+                background-position: center;
+                border-radius: 20px;
+                padding: 30px 40px;
+                color: white;
+                margin-bottom: 30px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative;
+                overflow: hidden;
+            }
+            .welcome-banner h2 {
+                font-size: 28px;
+                font-weight: 700;
+                font-style: italic;
+                margin-bottom: 15px;
+            }
+            .welcome-badges {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            .welcome-badge {
+                background: rgba(255,255,255,0.2);
+                padding: 6px 16px;
+                border-radius: 20px;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .welcome-text {
+                opacity: 0.9;
+                font-size: 14px;
+            }
+            .welcome-logo {
+                text-align: center;
+            }
+            .welcome-logo img {
+                width: 180px;
+                height: 180px;
+                border-radius: 30px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            }
+            .welcome-actions {
+                display: flex;
+                gap: 12px;
+            }
+            .welcome-btn {
+                background: rgba(255,255,255,0.15);
+                border: 1px solid rgba(255,255,255,0.3);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 25px;
+                text-decoration: none;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.3s;
+            }
+            .welcome-btn:hover {
+                background: rgba(255,255,255,0.25);
+            }
+        </style>
+        
+        <?php
+        $hour = date('H');
+        if ($hour < 12) $greeting = 'Chào buổi sáng';
+        elseif ($hour < 18) $greeting = 'Chào buổi chiều';
+        else $greeting = 'Chào buổi tối';
+        ?>
+        
+        <div class="welcome-banner">
+            <div>
+                <h2><?= $greeting ?>, <?= htmlspecialchars($user['name']) ?>!</h2>
+                <div class="welcome-badges">
+                    <span class="welcome-badge">👤 Khách hàng</span>
+                    <span class="welcome-badge">✅ Đã xác minh</span>
+                </div>
+                <p class="welcome-text">Hôm nay bạn muốn ăn gì?</p>
+            </div>
+            <div class="welcome-logo">
+                <img src="../logo.png" alt="Logo">
+            </div>
+            <div class="welcome-actions">
+                <a href="shops.php" class="welcome-btn">🏪 Cửa hàng</a>
+                <a href="orders.php" class="welcome-btn">📦 Đơn hàng</a>
+                <a href="cart.php" class="welcome-btn">🛒 Giỏ hàng</a>
+            </div>
         </div>
         
         <div class="stats-grid">
@@ -109,25 +201,6 @@ if (empty($products)) {
                 </div>
             </div>
         </div>
-        
-        <?php if (!empty($recentOrders)): ?>
-        <div class="section">
-            <h2>📋 Đơn hàng gần đây</h2>
-            <div class="orders-list">
-                <?php foreach ($recentOrders as $order): ?>
-                <div class="order-item">
-                    <div class="order-info">
-                        <span class="order-id">#<?= $order['id'] ?></span>
-                        <span class="order-shop"><?= htmlspecialchars($order['shop_name']) ?></span>
-                    </div>
-                    <div class="order-amount"><?= number_format($order['total_amount']) ?>đ</div>
-                    <div class="order-status status-<?= $order['status'] ?>"><?= ucfirst($order['status']) ?></div>
-                    <a href="order_detail.php?id=<?= $order['id'] ?>" class="btn-view">Xem</a>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-        <?php endif; ?>
         
         <div class="section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -162,6 +235,25 @@ if (empty($products)) {
             </div>
             <?php endif; ?>
         </div>
+        
+        <?php if (!empty($recentOrders)): ?>
+        <div class="section">
+            <h2>📋 Đơn hàng gần đây</h2>
+            <div class="orders-list">
+                <?php foreach ($recentOrders as $order): ?>
+                <div class="order-item">
+                    <div class="order-info">
+                        <span class="order-id">#<?= $order['id'] ?></span>
+                        <span class="order-shop"><?= htmlspecialchars($order['shop_name']) ?></span>
+                    </div>
+                    <div class="order-amount"><?= number_format($order['total_amount']) ?>đ</div>
+                    <div class="order-status status-<?= $order['status'] ?>"><?= ucfirst($order['status']) ?></div>
+                    <a href="order_detail.php?id=<?= $order['id'] ?>" class="btn-view">Xem</a>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
     
     <?php include '../includes/customer_footer.php'; ?>
