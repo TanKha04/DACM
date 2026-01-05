@@ -24,31 +24,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($name)) {
                 $error = 'Vui lòng nhập họ tên';
             } else {
-                // Upload avatar nếu có
                 $avatarPath = null;
                 if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
                     $uploadDir = __DIR__ . '/../uploads/avatars/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0777, true);
-                    }
-                    
+                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
                     $ext = pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION);
                     $filename = 'shipper_' . $userId . '_' . time() . '.' . $ext;
-                    $targetPath = $uploadDir . $filename;
-                    
-                    if (move_uploaded_file($_FILES['avatar']['tmp_name'], $targetPath)) {
+                    if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadDir . $filename)) {
                         $avatarPath = 'uploads/avatars/' . $filename;
                     }
                 }
                 
                 if ($avatarPath) {
-                    $stmt = $pdo->prepare("UPDATE users SET name = ?, phone = ?, address = ?, avatar = ? WHERE id = ?");
+                    $stmt = $pdo->prepare("UPDATE users SET name=?, phone=?, address=?, avatar=? WHERE id=?");
                     $stmt->execute([$name, $phone, $address, $avatarPath, $userId]);
                 } else {
-                    $stmt = $pdo->prepare("UPDATE users SET name = ?, phone = ?, address = ? WHERE id = ?");
+                    $stmt = $pdo->prepare("UPDATE users SET name=?, phone=?, address=? WHERE id=?");
                     $stmt->execute([$name, $phone, $address, $userId]);
                 }
-                
                 $_SESSION['user_name'] = $name;
                 $message = 'Cập nhật thông tin thành công!';
             }
@@ -57,33 +50,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newPassword = $_POST['new_password'] ?? '';
             $confirmPassword = $_POST['confirm_password'] ?? '';
             
-            // Lấy mật khẩu hiện tại
             $stmt = $pdo->prepare("SELECT password FROM users WHERE id = ?");
             $stmt->execute([$userId]);
-            $user = $stmt->fetch();
+            $userData = $stmt->fetch();
             
-            if (!password_verify($currentPassword, $user['password'])) {
+            if (!password_verify($currentPassword, $userData['password'])) {
                 $error = 'Mật khẩu hiện tại không đúng';
             } elseif (strlen($newPassword) < 6) {
                 $error = 'Mật khẩu mới phải có ít nhất 6 ký tự';
             } elseif ($newPassword !== $confirmPassword) {
                 $error = 'Mật khẩu xác nhận không khớp';
             } else {
-                $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
                 $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
-                $stmt->execute([$hashedPassword, $userId]);
+                $stmt->execute([password_hash($newPassword, PASSWORD_DEFAULT), $userId]);
                 $message = 'Đổi mật khẩu thành công!';
             }
         }
     }
 }
 
-// Lấy thông tin user
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
 
+$stmt = $pdo->prepare("SELECT COUNT(*) as total_orders, COALESCE(SUM(shipping_fee), 0) as total_earnings FROM orders WHERE shipper_id = ? AND status = 'delivered'");
+$stmt->execute([$userId]);
+$stats = $stmt->fetch();
+
 $base = getBaseUrl();
+$hour = date('H');
+$greeting = $hour < 12 ? 'Chào buổi sáng' : ($hour < 18 ? 'Chào buổi chiều' : 'Chào buổi tối');
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -92,205 +88,177 @@ $base = getBaseUrl();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tài khoản Shipper</title>
     <link rel="stylesheet" href="../assets/css/shipper.css">
-    <style>
-        .profile-container { max-width: 800px; margin: 0 auto; }
-        .profile-card { background: white; border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-        .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-        .profile-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ff6b35; }
-        .profile-name { font-size: 24px; font-weight: bold; color: #333; }
-        .profile-role { color: #ff6b35; font-size: 14px; margin-top: 5px; }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
-        .form-group input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; transition: border-color 0.3s; }
-        .form-group input:focus { outline: none; border-color: #ff6b35; }
-        .form-group input[type="file"] { padding: 10px; }
-        
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        
-        .btn { padding: 12px 25px; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; transition: all 0.3s; }
-        .btn-primary { background: #ff6b35; color: white; }
-        .btn-primary:hover { background: #e55a2b; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-secondary:hover { background: #5a6268; }
-        
-        .card-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        
-        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 10px 20px; background: #f0f0f0; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
-        .tab-btn.active { background: #ff6b35; color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        .info-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
-        .info-item:last-child { border-bottom: none; }
-        .info-label { color: #666; }
-        .info-value { font-weight: 500; color: #333; }
-        
-        .avatar-upload { position: relative; display: inline-block; }
-        .avatar-upload input[type="file"] { display: none; }
-        .avatar-upload label { display: block; cursor: pointer; }
-        .avatar-upload .upload-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; text-align: center; padding: 5px; font-size: 12px; border-radius: 0 0 50px 50px; opacity: 0; transition: opacity 0.3s; }
-        .avatar-upload:hover .upload-overlay { opacity: 1; }
-    </style>
 </head>
 <body>
     <?php include '../includes/shipper_sidebar.php'; ?>
     <div class="main-content">
         <div class="page-header">
             <h1>⚙️ Tài khoản</h1>
+            <span style="color: #7f8c8d;"><?= date('d/m/Y H:i') ?></span>
         </div>
         
+        <style>
+        .profile-banner { background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1200&h=400&fit=crop'); background-size: cover; background-position: center; border-radius: 20px; padding: 40px; color: white; margin-bottom: 30px; position: relative; }
+        .profile-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(147,51,234,0.3)); border-radius: 20px; }
+        .profile-banner-content { position: relative; z-index: 1; display: flex; align-items: center; gap: 30px; }
+        .profile-avatar-large { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .profile-banner-info h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .profile-banner-badges { display: flex; gap: 10px; margin-bottom: 10px; }
+        .profile-badge { background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-size: 13px; }
+        .profile-stats-row { display: flex; gap: 30px; margin-top: 15px; }
+        .profile-stat { text-align: center; }
+        .profile-stat-value { font-size: 24px; font-weight: bold; }
+        .profile-stat-label { font-size: 12px; opacity: 0.9; }
+        .profile-container { max-width: 900px; margin: 0 auto; }
+        .tabs { display: flex; gap: 5px; background: white; padding: 8px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .tab-btn { flex: 1; padding: 14px 20px; background: transparent; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: #666; transition: all 0.3s; }
+        .tab-btn:hover { background: #f5f5f5; }
+        .tab-btn.active { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .profile-card { background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .card-title { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .info-card { background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 15px; padding: 20px; display: flex; align-items: center; gap: 15px; transition: transform 0.3s; }
+        .info-card:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .info-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .info-icon.email { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .info-icon.phone { background: linear-gradient(135deg, #10b981, #34d399); }
+        .info-icon.address { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .info-icon.date { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .info-content { flex: 1; }
+        .info-label { font-size: 12px; color: #666; margin-bottom: 4px; }
+        .info-value { font-size: 15px; font-weight: 600; color: #333; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
+        .form-group input { width: 100%; padding: 14px 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; transition: all 0.3s; background: #f9fafb; }
+        .form-group input:focus { outline: none; border-color: #3b82f6; background: white; }
+        .form-group input:disabled { background: #f3f4f6; color: #9ca3af; }
+        .form-group small { color: #9ca3af; font-size: 12px; margin-top: 5px; display: block; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .avatar-upload-section { text-align: center; margin-bottom: 30px; padding: 30px; background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 15px; }
+        .avatar-upload { position: relative; display: inline-block; }
+        .avatar-upload input[type="file"] { display: none; }
+        .avatar-upload label { display: block; cursor: pointer; }
+        .avatar-upload .profile-avatar-edit { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 5px 20px rgba(0,0,0,0.15); transition: transform 0.3s; }
+        .avatar-upload:hover .profile-avatar-edit { transform: scale(1.05); }
+        .avatar-upload .upload-overlay { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .avatar-hint { color: #666; font-size: 13px; margin-top: 15px; }
+        .btn { padding: 14px 30px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #f87171); color: white; }
+        .btn-danger:hover { transform: translateY(-2px); }
+        .alert { padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; }
+        .alert-success { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; border: 1px solid #6ee7b7; }
+        .alert-error { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; border: 1px solid #fca5a5; }
+        .logout-section { text-align: center; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        .logout-section p { color: #666; margin-bottom: 20px; }
+        </style>
+        
         <div class="profile-container">
-            <?php if ($message): ?>
-            <div class="alert alert-success"><?= $message ?></div>
-            <?php endif; ?>
-            <?php if ($error): ?>
-            <div class="alert alert-error"><?= $error ?></div>
-            <?php endif; ?>
+            <?php if ($message): ?><div class="alert alert-success">✅ <?= $message ?></div><?php endif; ?>
+            <?php if ($error): ?><div class="alert alert-error">❌ <?= $error ?></div><?php endif; ?>
             
-            <!-- Tabs -->
-            <div class="tabs">
-                <button class="tab-btn active" onclick="showTab('info')">📋 Thông tin</button>
-                <button class="tab-btn" onclick="showTab('edit')">✏️ Chỉnh sửa</button>
-                <button class="tab-btn" onclick="showTab('password')">🔒 Đổi mật khẩu</button>
-            </div>
-            
-            <!-- Tab: Thông tin -->
-            <div id="tab-info" class="tab-content active">
-                <div class="profile-card">
-                    <div class="profile-header">
-                        <img src="<?= $user['avatar'] ? ($user['avatar'][0] === '/' ? $base . $user['avatar'] : $base . '/' . $user['avatar']) : $base . '/assets/img/default_avatar.png' ?>" class="profile-avatar" alt="Avatar">
-                        <div>
-                            <div class="profile-name"><?= htmlspecialchars($user['name']) ?></div>
-                            <div class="profile-role">🚚 Shipper</div>
+            <div class="profile-banner">
+                <div class="profile-banner-content">
+                    <img src="<?= $user['avatar'] ? $base . '/' . $user['avatar'] : $base . '/assets/img/default_avatar.png' ?>" class="profile-avatar-large" alt="Avatar">
+                    <div class="profile-banner-info">
+                        <h2><?= $greeting ?>, <?= htmlspecialchars($user['name']) ?>!</h2>
+                        <div class="profile-banner-badges">
+                            <span class="profile-badge">🚚 Shipper</span>
+                            <span class="profile-badge">✅ Đã xác minh</span>
                         </div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <span class="info-label">📧 Email</span>
-                        <span class="info-value"><?= htmlspecialchars($user['email']) ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">📱 Số điện thoại</span>
-                        <span class="info-value"><?= $user['phone'] ? htmlspecialchars($user['phone']) : '<em style="color:#999">Chưa cập nhật</em>' ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">📍 Địa chỉ</span>
-                        <span class="info-value"><?= $user['address'] ? htmlspecialchars($user['address']) : '<em style="color:#999">Chưa cập nhật</em>' ?></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">📅 Ngày tham gia</span>
-                        <span class="info-value"><?= date('d/m/Y', strtotime($user['created_at'])) ?></span>
+                        <div class="profile-stats-row">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value"><?= number_format($stats['total_orders']) ?></div>
+                                <div class="profile-stat-label">Đơn đã giao</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value"><?= number_format($stats['total_earnings']) ?>đ</div>
+                                <div class="profile-stat-label">Tổng thu nhập</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Tab: Chỉnh sửa -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('info', this)">📋 Thông tin</button>
+                <button class="tab-btn" onclick="showTab('edit', this)">✏️ Chỉnh sửa</button>
+                <button class="tab-btn" onclick="showTab('password', this)">🔒 Đổi mật khẩu</button>
+            </div>
+            
+            <div id="tab-info" class="tab-content active">
+                <div class="profile-card">
+                    <div class="card-title">📋 Thông tin cá nhân</div>
+                    <div class="info-grid">
+                        <div class="info-card"><div class="info-icon email">📧</div><div class="info-content"><div class="info-label">Email</div><div class="info-value"><?= htmlspecialchars($user['email']) ?></div></div></div>
+                        <div class="info-card"><div class="info-icon phone">📱</div><div class="info-content"><div class="info-label">Số điện thoại</div><div class="info-value"><?= $user['phone'] ?: 'Chưa cập nhật' ?></div></div></div>
+                        <div class="info-card"><div class="info-icon address">📍</div><div class="info-content"><div class="info-label">Địa chỉ</div><div class="info-value"><?= $user['address'] ?: 'Chưa cập nhật' ?></div></div></div>
+                        <div class="info-card"><div class="info-icon date">📅</div><div class="info-content"><div class="info-label">Ngày tham gia</div><div class="info-value"><?= date('d/m/Y', strtotime($user['created_at'])) ?></div></div></div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="tab-edit" class="tab-content">
                 <div class="profile-card">
                     <div class="card-title">✏️ Chỉnh sửa thông tin</div>
                     <form method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="action" value="update_profile">
-                        
-                        <div style="text-align: center; margin-bottom: 20px;">
+                        <div class="avatar-upload-section">
                             <div class="avatar-upload">
                                 <label for="avatar-input">
-                                    <img src="<?= $user['avatar'] ? ($user['avatar'][0] === '/' ? $base . $user['avatar'] : $base . '/' . $user['avatar']) : $base . '/assets/img/default_avatar.png' ?>" class="profile-avatar" alt="Avatar" id="avatar-preview">
+                                    <img src="<?= $user['avatar'] ? $base . '/' . $user['avatar'] : $base . '/assets/img/default_avatar.png' ?>" class="profile-avatar-edit" alt="Avatar" id="avatar-preview">
                                     <div class="upload-overlay">📷 Đổi ảnh</div>
                                 </label>
                                 <input type="file" name="avatar" id="avatar-input" accept="image/*" onchange="previewAvatar(this)">
                             </div>
+                            <p class="avatar-hint">Click vào ảnh để thay đổi avatar</p>
                         </div>
-                        
-                        <div class="form-group">
-                            <label>Họ tên *</label>
-                            <input type="text" name="name" value="<?= htmlspecialchars($user['name']) ?>" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" value="<?= htmlspecialchars($user['email']) ?>" disabled style="background: #f5f5f5;">
-                            <small style="color: #999;">Email không thể thay đổi</small>
-                        </div>
-                        
+                        <div class="form-group"><label>👤 Họ tên *</label><input type="text" name="name" value="<?= htmlspecialchars($user['name']) ?>" required></div>
+                        <div class="form-group"><label>📧 Email</label><input type="email" value="<?= htmlspecialchars($user['email']) ?>" disabled><small>Email không thể thay đổi</small></div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Số điện thoại</label>
-                                <input type="tel" name="phone" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" placeholder="0123456789">
-                            </div>
+                            <div class="form-group"><label>📱 Số điện thoại</label><input type="tel" name="phone" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" placeholder="0123456789"></div>
+                            <div class="form-group"><label>📍 Địa chỉ</label><input type="text" name="address" value="<?= htmlspecialchars($user['address'] ?? '') ?>" placeholder="Nhập địa chỉ"></div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label>Địa chỉ</label>
-                            <input type="text" name="address" value="<?= htmlspecialchars($user['address'] ?? '') ?>" placeholder="Nhập địa chỉ của bạn">
-                        </div>
-                        
                         <button type="submit" class="btn btn-primary">💾 Lưu thay đổi</button>
                     </form>
                 </div>
             </div>
             
-            <!-- Tab: Đổi mật khẩu -->
             <div id="tab-password" class="tab-content">
                 <div class="profile-card">
                     <div class="card-title">🔒 Đổi mật khẩu</div>
                     <form method="POST">
                         <input type="hidden" name="action" value="change_password">
-                        
-                        <div class="form-group">
-                            <label>Mật khẩu hiện tại *</label>
-                            <input type="password" name="current_password" required placeholder="Nhập mật khẩu hiện tại">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Mật khẩu mới *</label>
-                            <input type="password" name="new_password" required placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Xác nhận mật khẩu mới *</label>
-                            <input type="password" name="confirm_password" required placeholder="Nhập lại mật khẩu mới">
-                        </div>
-                        
+                        <div class="form-group"><label>🔑 Mật khẩu hiện tại *</label><input type="password" name="current_password" required placeholder="Nhập mật khẩu hiện tại"></div>
+                        <div class="form-group"><label>🔐 Mật khẩu mới *</label><input type="password" name="new_password" required placeholder="Ít nhất 6 ký tự"></div>
+                        <div class="form-group"><label>🔐 Xác nhận mật khẩu *</label><input type="password" name="confirm_password" required placeholder="Nhập lại mật khẩu mới"></div>
                         <button type="submit" class="btn btn-primary">🔐 Đổi mật khẩu</button>
                     </form>
                 </div>
             </div>
             
-            <!-- Nút đăng xuất -->
-            <div style="text-align: center; margin-top: 20px;">
-                <a href="../auth/logout.php" class="btn btn-secondary">🚪 Đăng xuất</a>
+            <div class="logout-section">
+                <p>Bạn muốn đăng xuất khỏi tài khoản?</p>
+                <a href="../auth/logout.php" class="btn btn-danger">🚪 Đăng xuất</a>
             </div>
         </div>
     </div>
     
     <script>
-    function showTab(tabName) {
-        // Ẩn tất cả tab content
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        // Bỏ active tất cả tab button
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        // Hiện tab được chọn
+    function showTab(tabName, btn) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + tabName).classList.add('active');
-        // Active button
-        event.target.classList.add('active');
+        btn.classList.add('active');
     }
-    
     function previewAvatar(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('avatar-preview').src = e.target.result;
-            }
+            reader.onload = e => document.getElementById('avatar-preview').src = e.target.result;
             reader.readAsDataURL(input.files[0]);
         }
     }

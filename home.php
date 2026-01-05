@@ -681,7 +681,7 @@ if (empty($categories)) {
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <a href="home.php" class="logo" style="margin-bottom: 15px; display: inline-flex;">
+                    <a href="<?= $isLoggedIn ? 'home.php' : 'index.php' ?>" class="logo" style="margin-bottom: 15px; display: inline-flex;">
                         <img src="logo.png" alt="Logo" style="width: 36px; height: 36px; border-radius: 8px;">
                         FastFood Express
                     </a>

@@ -1,11 +1,11 @@
 <?php
 /**
- * Trang chủ - Redirect theo trạng thái đăng nhập
+ * Trang chủ - Redirect đến home.php
  */
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/auth.php';
 
-// Hiển thị trang chủ cho tất cả
+// Chuyển đến trang chủ home.php cho tất cả
 header('Location: home.php');
 exit;
