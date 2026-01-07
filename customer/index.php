@@ -332,7 +332,8 @@ if (!$needLocation && !empty($nearbyShops)) {
         
         <div class="welcome-banner">
             <div>
-                <h2><?= $greeting ?>, <?= htmlspecialchars($user['name']) ?>! <?= $tetGreeting ?></h2>
+                <h2><?= $greeting ?>, <?= htmlspecialchars($user['name']) ?>!</h2>
+                <p style="font-size: 18px; color: #fbbf24; margin-bottom: 12px; font-weight: 600; font-style: italic;"><?= $tetGreeting ?></p>
                 <div class="welcome-badges">
                     <span class="welcome-badge">👤 Khách hàng</span>
                     <span class="welcome-badge">✅ Đã xác minh</span>
