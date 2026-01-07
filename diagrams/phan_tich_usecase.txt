@@ -1,0 +1,89 @@
+PHÂN TÍCH SƠ ĐỒ USE CASE - HỆ THỐNG ĐẶT VÀ GIAO ĐỒ ĂN TRỰC TUYẾN
+
+
+Bảng 3.1 - DANH SÁCH CÁC TÁC NHÂN (ACTORS)
+
+Tác nhân	Mô tả
+Người dùng	Tác nhân tổng quát, là cha của tất cả các tác nhân khác. Có các chức năng cơ bản như đăng nhập, đăng xuất, cập nhật hồ sơ, xem thông báo, nhắn tin và gửi yêu cầu hỗ trợ.
+Khách hàng	Người sử dụng hệ thống để tìm kiếm, đặt mua đồ ăn từ các cửa hàng. Có thể theo dõi đơn hàng và đánh giá sau khi nhận.
+Người bán	Chủ cửa hàng bán đồ ăn trên hệ thống. Quản lý sản phẩm, xử lý đơn hàng, tạo khuyến mãi và theo dõi doanh thu.
+Shipper	Người giao hàng, nhận đơn từ cửa hàng và giao đến khách hàng. Cập nhật trạng thái giao hàng và theo dõi thu nhập.
+Quản trị viên	Người quản lý toàn bộ hệ thống. Duyệt cửa hàng, quản lý người dùng, tạo voucher và cấu hình hệ thống.
+
+
+Bảng 3.2 - USE CASE CỦA NGƯỜI DÙNG (Chức năng dùng chung)
+
+Use Case	Mô tả
+Đăng nhập	Người dùng nhập email và mật khẩu để truy cập hệ thống với vai trò tương ứng.
+Đăng xuất	Người dùng thoát khỏi phiên đăng nhập hiện tại. (Include từ Đăng nhập)
+Cập nhật hồ sơ	Người dùng chỉnh sửa thông tin cá nhân như tên, số điện thoại, địa chỉ, ảnh đại diện.
+Xem thông báo	Người dùng xem các thông báo từ hệ thống về đơn hàng, khuyến mãi hoặc thông tin quan trọng.
+Nhắn tin	Người dùng trao đổi tin nhắn với các bên liên quan trong quá trình đặt hàng và giao hàng.
+Gửi yêu cầu hỗ trợ	Người dùng gửi ticket hỗ trợ khi gặp vấn đề về tài khoản, đơn hàng, thanh toán hoặc kỹ thuật.
+
+
+Bảng 3.3 - USE CASE CỦA KHÁCH HÀNG
+
+Use Case	Mô tả
+Xem cửa hàng	Khách hàng duyệt danh sách các cửa hàng đang hoạt động, xem thông tin và đánh giá của cửa hàng.
+Xem sản phẩm	Khách hàng xem danh sách món ăn của cửa hàng, bao gồm tên, giá, mô tả và hình ảnh sản phẩm.
+Thêm giỏ hàng	Khách hàng thêm sản phẩm hoặc combo vào giỏ hàng, chọn số lượng mong muốn.
+Đặt hàng	Khách hàng xác nhận đơn hàng từ giỏ hàng, nhập địa chỉ giao hàng và ghi chú cho đơn hàng.
+Thanh toán	Khách hàng chọn phương thức thanh toán (tiền mặt, thẻ, ví điện tử) và hoàn tất đơn hàng.
+Theo dõi đơn hàng	Khách hàng xem trạng thái đơn hàng theo thời gian thực từ lúc đặt đến khi nhận hàng.
+Đánh giá	Khách hàng đánh giá sao và viết nhận xét về sản phẩm, cửa hàng và shipper sau khi nhận hàng.
+
+
+Bảng 3.4 - USE CASE CỦA NGƯỜI BÁN
+
+Use Case	Mô tả
+Đăng ký cửa hàng	Người bán đăng ký mở cửa hàng trên hệ thống, cung cấp thông tin cửa hàng và chờ admin duyệt.
+Quản lý sản phẩm	Người bán thêm, sửa, xóa sản phẩm trong cửa hàng. Cập nhật giá, mô tả, hình ảnh và trạng thái sản phẩm.
+Quản lý combo	Người bán tạo các combo sản phẩm với giá ưu đãi, kết hợp nhiều món ăn thành một gói.
+Xử lý đơn hàng	Người bán xem đơn hàng mới, xác nhận, chuẩn bị món và cập nhật trạng thái đơn hàng.
+Tạo khuyến mãi	Người bán tạo mã giảm giá, chương trình khuyến mãi cho cửa hàng với các điều kiện áp dụng.
+Xem doanh thu	Người bán xem báo cáo doanh thu theo ngày, tuần, tháng và thống kê các đơn hàng đã hoàn thành.
+Phản hồi đánh giá	Người bán trả lời các đánh giá từ khách hàng về sản phẩm và dịch vụ của cửa hàng.
+
+
+Bảng 3.5 - USE CASE CỦA SHIPPER
+
+Use Case	Mô tả
+Đăng ký shipper	Người dùng đăng ký trở thành shipper, cung cấp thông tin CMND, phương tiện và chờ admin duyệt.
+Cập nhật trạng thái	Shipper bật/tắt trạng thái sẵn sàng nhận đơn giao hàng và cập nhật vị trí hiện tại.
+Xem đơn cần giao	Shipper xem danh sách các đơn hàng đang chờ giao trong khu vực hoạt động của mình.
+Nhận đơn giao hàng	Shipper chọn nhận một đơn hàng để thực hiện giao hàng từ cửa hàng đến khách hàng.
+Cập nhật giao hàng	Shipper cập nhật trạng thái giao hàng: đã lấy hàng, đang giao, đã giao thành công hoặc thất bại.
+Xem thu nhập	Shipper xem tổng thu nhập từ các đơn hàng đã giao, thống kê theo ngày, tuần, tháng.
+
+
+Bảng 3.6 - USE CASE CỦA QUẢN TRỊ VIÊN
+
+Use Case	Mô tả
+Quản lý người dùng	Admin xem, khóa, mở khóa tài khoản người dùng. Duyệt yêu cầu đăng ký seller và shipper.
+Duyệt cửa hàng	Admin xem xét và phê duyệt các cửa hàng mới đăng ký, kiểm tra thông tin và giấy phép kinh doanh.
+Quản lý danh mục	Admin thêm, sửa, xóa các danh mục món ăn trong hệ thống như: Burger, Pizza, Gà rán, Đồ uống...
+Tạo voucher hệ thống	Admin tạo mã voucher giảm giá áp dụng toàn hệ thống, thiết lập điều kiện và thời hạn sử dụng.
+Xem báo cáo tài chính	Admin xem tổng quan doanh thu, hoa hồng, phí giao hàng và các chỉ số tài chính của hệ thống.
+Cấu hình hệ thống	Admin thiết lập các thông số như phí giao hàng cơ bản, tỷ lệ hoa hồng, phí dịch vụ và các cấu hình khác.
+Xử lý hỗ trợ	Admin xem và phản hồi các ticket hỗ trợ từ người dùng, giải quyết khiếu nại và vấn đề phát sinh.
+
+
+Bảng 3.7 - MỐI QUAN HỆ GIỮA CÁC TÁC NHÂN
+
+Tác nhân cha	Tác nhân con	Mô tả quan hệ
+Người dùng	Khách hàng	Khách hàng kế thừa tất cả chức năng của Người dùng và có thêm chức năng riêng.
+Người dùng	Người bán	Người bán kế thừa tất cả chức năng của Người dùng và có thêm chức năng riêng.
+Người dùng	Shipper	Shipper kế thừa tất cả chức năng của Người dùng và có thêm chức năng riêng.
+Người dùng	Quản trị viên	Quản trị viên kế thừa tất cả chức năng của Người dùng và có thêm chức năng riêng.
+
+
+Bảng 3.8 - MỐI QUAN HỆ INCLUDE VÀ EXTEND
+
+Use Case chính	Use Case liên quan	Loại quan hệ	Mô tả
+Đăng nhập	Đăng xuất	Include	Đăng xuất chỉ thực hiện được khi đã đăng nhập.
+Đặt hàng	Thanh toán	Include	Đặt hàng bắt buộc phải có bước thanh toán.
+Đặt hàng	Thêm giỏ hàng	Include	Phải có sản phẩm trong giỏ hàng mới đặt được.
+Theo dõi đơn hàng	Đánh giá	Extend	Sau khi nhận hàng có thể đánh giá (không bắt buộc).
+Xử lý đơn hàng	Nhắn tin	Extend	Người bán có thể nhắn tin cho khách hàng.
+Nhận đơn giao hàng	Cập nhật giao hàng	Include	Sau khi nhận đơn phải cập nhật trạng thái.
