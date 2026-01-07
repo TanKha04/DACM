@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1100" width="1400" height="1100">
+  <defs>
+    <style>
+      .actor-text { font-family: Arial, sans-serif; font-size: 13px; text-anchor: middle; }
+      .usecase { fill: #fff; stroke: #333; stroke-width: 1.5; }
+      .usecase-text { font-family: Arial, sans-serif; font-size: 11px; text-anchor: middle; dominant-baseline: middle; }
+      .actor-line { stroke: #333; stroke-width: 2; }
+      .connect-line { stroke: #333; stroke-width: 1; }
+      .inherit-line { stroke: #333; stroke-width: 1.5; }
+      .include-text { font-family: Arial, sans-serif; font-size: 10px; font-style: italic; }
+    </style>
+    <!-- Arrow marker for inheritance -->
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L0,12 L12,6 Z" fill="#fff" stroke="#333" stroke-width="1"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="1100" fill="#f9f9f9"/>
+
+  <!-- ==================== NGƯỜI DÙNG (Center - Parent Actor) ==================== -->
+  <g transform="translate(700, 450)">
+    <circle cx="0" cy="-30" r="18" fill="none" stroke="#333" stroke-width="2"/>
+    <line x1="0" y1="-12" x2="0" y2="30" class="actor-line"/>
+    <line x1="-25" y1="5" x2="25" y2="5" class="actor-line"/>
+    <line x1="0" y1="30" x2="-18" y2="60" class="actor-line"/>
+    <line x1="0" y1="30" x2="18" y2="60" class="actor-line"/>
+    <text x="0" y="80" class="actor-text">Người dùng</text>
+  </g>
+
+  <!-- Use cases chung cho Người dùng -->
+  <ellipse cx="700" cy="300" rx="70" ry="25" class="usecase"/>
+  <text x="700" y="300" class="usecase-text">Đăng nhập</text>
+  <line x1="700" y1="325" x2="700" y2="400" class="connect-line"/>
+
+  <ellipse cx="550" cy="250" rx="65" ry="25" class="usecase"/>
+  <text x="550" y="250" class="usecase-text">Đăng xuất</text>
+  <line x1="590" y1="270" x2="670" y2="390" class="connect-line"/>
+  
+  <!-- Include relationship -->
+  <line x1="620" y1="270" x2="670" y2="290" class="connect-line" stroke-dasharray="5,3"/>
+  <text x="620" y="265" class="include-text">«include»</text>
+
+  <!-- ==================== KHÁCH HÀNG (Top Right) ==================== -->
+  <g transform="translate(950, 200)">
+    <circle cx="0" cy="-30" r="18" fill="none" stroke="#333" stroke-width="2"/>
+    <line x1="0" y1="-12" x2="0" y2="30" class="actor-line"/>
+    <line x1="-25" y1="5" x2="25" y2="5" class="actor-line"/>
+    <line x1="0" y1="30" x2="-18" y2="60" class="actor-line"/>
+    <line x1="0" y1="30" x2="18" y2="60" class="actor-line"/>
+    <text x="0" y="80" class="actor-text">Khách hàng</text>
+  </g>
+  
+  <!-- Inheritance line from Khách hàng to Người dùng -->
+  <line x1="920" y1="250" x2="750" y2="400" class="inherit-line" marker-end="url(#arrow)"/>
+
+  <!-- Khách hàng Use Cases -->
+  <ellipse cx="1100" cy="80" rx="75" ry="25" class="usecase"/>
+  <text x="1100" y="80" class="usecase-text">Xem cửa hàng</text>
+  <line x1="980" y1="170" x2="1040" y2="100" class="connect-line"/>
+
+  <ellipse cx="1250" cy="120" rx="75" ry="25" class="usecase"/>
+  <text x="1250" y="120" class="usecase-text">Xem sản phẩm</text>
+  <line x1="990" y1="180" x2="1180" y2="130" class="connect-line"/>
+
+  <ellipse cx="1300" cy="200" rx="70" ry="25" class="usecase"/>
+  <text x="1300" y="200" class="usecase-text">Thêm giỏ hàng</text>
+  <line x1="1000" y1="200" x2="1230" y2="200" class="connect-line"/>
+
+  <ellipse cx="1300" cy="280" rx="70" ry="25" class="usecase"/>
+  <text x="1300" y="280" class="usecase-text">Đặt hàng</text>
+  <line x1="990" y1="220" x2="1230" y2="270" class="connect-line"/>
+
+  <ellipse cx="1250" cy="360" rx="75" ry="25" class="usecase"/>
+  <text x="1250" y="360" class="usecase-text">Thanh toán</text>
+  <line x1="980" y1="240" x2="1180" y2="350" class="connect-line"/>
+
+  <ellipse cx="1100" cy="420" rx="80" ry="25" class="usecase"/>
+  <text x="1100" y="420" class="usecase-text">Theo dõi đơn hàng</text>
+  <line x1="970" y1="250" x2="1030" y2="400" class="connect-line"/>
+
+  <ellipse cx="1050" cy="320" rx="70" ry="25" class="usecase"/>
+  <text x="1050" y="320" class="usecase-text">Đánh giá</text>
+  <line x1="980" y1="230" x2="1000" y2="300" class="connect-line"/>
+
+  <!-- ==================== NGƯỜI BÁN (Bottom Right) ==================== -->
+  <g transform="translate(950, 700)">
+    <circle cx="0" cy="-30" r="18" fill="none" stroke="#333" stroke-width="2"/>
+    <line x1="0" y1="-12" x2="0" y2="30" class="actor-line"/>
+    <line x1="-25" y1="5" x2="25" y2="5" class="actor-line"/>
+    <line x1="0" y1="30" x2="-18" y2="60" class="actor-line"/>
+    <line x1="0" y1="30" x2="18" y2="60" class="actor-line"/>
+    <text x="0" y="80" class="actor-text">Người bán</text>
+  </g>
+
+  <!-- Inheritance line from Người bán to Người dùng -->
+  <line x1="920" y1="660" x2="750" y2="520" class="inherit-line" marker-end="url(#arrow)"/>
+
+  <!-- Người bán Use Cases -->
+  <ellipse cx="1100" cy="550" rx="80" ry="25" class="usecase"/>
+  <text x="1100" y="550" class="usecase-text">Đăng ký cửa hàng</text>
+  <line x1="970" y1="660" x2="1030" y2="575" class="connect-line"/>
+
+  <ellipse cx="1250" cy="600" rx="80" ry="25" class="usecase"/>
+  <text x="1250" y="600" class="usecase-text">Quản lý sản phẩm</text>
+  <line x1="990" y1="680" x2="1175" y2="610" class="connect-line"/>
+
+  <ellipse cx="1300" cy="680" rx="75" ry="25" class="usecase"/>
+  <text x="1300" y="680" class="usecase-text">Quản lý combo</text>
+  <line x1="1000" y1="700" x2="1225" y2="685" class="connect-line"/>
+
+  <ellipse cx="1300" cy="760" rx="75" ry="25" class="usecase"/>
+  <text x="1300" y="760" class="usecase-text">Xử lý đơn hàng</text>
+  <line x1="990" y1="720" x2="1225" y2="755" class="connect-line"/>
+
+  <ellipse cx="1250" cy="840" rx="75" ry="25" class="usecase"/>
+  <text x="1250" y="840" class="usecase-text">Tạo khuyến mãi</text>
+  <line x1="980" y1="740" x2="1180" y2="830" class="connect-line"/>
+
+  <ellipse cx="1100" cy="900" rx="70" ry="25" class="usecase"/>
+  <text x="1100" y="900" class="usecase-text">Xem doanh thu</text>
+  <line x1="970" y1="750" x2="1040" y2="880" class="connect-line"/>
+
+  <ellipse cx="1050" cy="620" rx="80" ry="25" class="usecase"/>
+  <text x="1050" y="620" class="usecase-text">Phản hồi đánh giá</text>
+  <line x1="970" y1="670" x2="990" y2="640" class="connect-line"/>
+
+  <!-- ==================== SHIPPER (Top Left) ==================== -->
+  <g transform="translate(450, 200)">
+    <circle cx="0" cy="-30" r="18" fill="none" stroke="#333" stroke-width="2"/>
+    <line x1="0" y1="-12" x2="0" y2="30" class="actor-line"/>
+    <line x1="-25" y1="5" x2="25" y2="5" class="actor-line"/>
+    <line x1="0" y1="30" x2="-18" y2="60" class="actor-line"/>
+    <line x1="0" y1="30" x2="18" y2="60" class="actor-line"/>
+    <text x="0" y="80" class="actor-text">Shipper</text>
+  </g>
+
+  <!-- Inheritance line from Shipper to Người dùng -->
+  <line x1="480" y1="250" x2="650" y2="400" class="inherit-line" marker-end="url(#arrow)"/>
+
+  <!-- Shipper Use Cases -->
+  <ellipse cx="300" cy="80" rx="75" ry="25" class="usecase"/>
+  <text x="300" y="80" class="usecase-text">Đăng ký shipper</text>
+  <line x1="420" y1="170" x2="360" y2="100" class="connect-line"/>
+
+  <ellipse cx="150" cy="120" rx="80" ry="25" class="usecase"/>
+  <text x="150" y="120" class="usecase-text">Cập nhật trạng thái</text>
+  <line x1="410" y1="180" x2="220" y2="130" class="connect-line"/>
+
+  <ellipse cx="100" cy="200" rx="80" ry="25" class="usecase"/>
+  <text x="100" y="200" class="usecase-text">Xem đơn cần giao</text>
+  <line x1="400" y1="200" x2="180" y2="200" class="connect-line"/>
+
+  <ellipse cx="100" cy="280" rx="80" ry="25" class="usecase"/>
+  <text x="100" y="280" class="usecase-text">Nhận đơn giao hàng</text>
+  <line x1="410" y1="220" x2="175" y2="265" class="connect-line"/>
+
+  <ellipse cx="150" cy="360" rx="85" ry="25" class="usecase"/>
+  <text x="150" y="360" class="usecase-text">Cập nhật giao hàng</text>
+  <line x1="420" y1="240" x2="225" y2="345" class="connect-line"/>
+
+  <ellipse cx="300" cy="420" rx="70" ry="25" class="usecase"/>
+  <text x="300" y="420" class="usecase-text">Xem thu nhập</text>
+  <line x1="430" y1="250" x2="355" y2="400" class="connect-line"/>
+
+  <!-- ==================== QUẢN TRỊ VIÊN (Bottom Left) ==================== -->
+  <g transform="translate(450, 700)">
+    <circle cx="0" cy="-30" r="18" fill="none" stroke="#333" stroke-width="2"/>
+    <line x1="0" y1="-12" x2="0" y2="30" class="actor-line"/>
+    <line x1="-25" y1="5" x2="25" y2="5" class="actor-line"/>
+    <line x1="0" y1="30" x2="-18" y2="60" class="actor-line"/>
+    <line x1="0" y1="30" x2="18" y2="60" class="actor-line"/>
+    <text x="0" y="80" class="actor-text">Quản trị viên</text>
+  </g>
+
+  <!-- Inheritance line from Admin to Người dùng -->
+  <line x1="480" y1="660" x2="650" y2="520" class="inherit-line" marker-end="url(#arrow)"/>
+
+  <!-- Admin Use Cases -->
+  <ellipse cx="300" cy="550" rx="80" ry="25" class="usecase"/>
+  <text x="300" y="550" class="usecase-text">Quản lý người dùng</text>
+  <line x1="430" y1="660" x2="365" y2="575" class="connect-line"/>
+
+  <ellipse cx="150" cy="600" rx="75" ry="25" class="usecase"/>
+  <text x="150" y="600" class="usecase-text">Duyệt cửa hàng</text>
+  <line x1="410" y1="680" x2="220" y2="615" class="connect-line"/>
+
+  <ellipse cx="100" cy="680" rx="80" ry="25" class="usecase"/>
+  <text x="100" y="680" class="usecase-text">Quản lý danh mục</text>
+  <line x1="400" y1="700" x2="180" y2="685" class="connect-line"/>
+
+  <ellipse cx="100" cy="760" rx="85" ry="25" class="usecase"/>
+  <text x="100" y="760" class="usecase-text">Tạo voucher hệ thống</text>
+  <line x1="410" y1="720" x2="180" y2="750" class="connect-line"/>
+
+  <ellipse cx="150" cy="840" rx="85" ry="25" class="usecase"/>
+  <text x="150" y="840" class="usecase-text">Xem báo cáo tài chính</text>
+  <line x1="420" y1="740" x2="225" y2="825" class="connect-line"/>
+
+  <ellipse cx="300" cy="900" rx="80" ry="25" class="usecase"/>
+  <text x="300" y="900" class="usecase-text">Cấu hình hệ thống</text>
+  <line x1="430" y1="750" x2="365" y2="880" class="connect-line"/>
+
+  <ellipse cx="350" cy="620" rx="70" ry="25" class="usecase"/>
+  <text x="350" y="620" class="usecase-text">Xử lý hỗ trợ</text>
+  <line x1="430" y1="670" x2="400" y2="640" class="connect-line"/>
+
+  <!-- ==================== SHARED USE CASES (Center) ==================== -->
+  <ellipse cx="580" cy="550" rx="65" ry="25" class="usecase"/>
+  <text x="580" y="550" class="usecase-text">Nhắn tin</text>
+  <line x1="650" y1="520" x2="620" y2="540" class="connect-line"/>
+  <line x1="920" y1="230" x2="640" y2="540" class="connect-line"/>
+  <line x1="920" y1="680" x2="640" y2="560" class="connect-line"/>
+
+  <ellipse cx="820" cy="550" rx="70" ry="25" class="usecase"/>
+  <text x="820" y="550" class="usecase-text">Xem thông báo</text>
+  <line x1="750" y1="520" x2="780" y2="540" class="connect-line"/>
+
+  <ellipse cx="700" cy="620" rx="80" ry="25" class="usecase"/>
+  <text x="700" y="620" class="usecase-text">Cập nhật hồ sơ</text>
+  <line x1="700" y1="530" x2="700" y2="595" class="connect-line"/>
+
+  <ellipse cx="700" cy="700" rx="80" ry="25" class="usecase"/>
+  <text x="700" y="700" class="usecase-text">Gửi yêu cầu hỗ trợ</text>
+  <line x1="700" y1="530" x2="700" y2="675" class="connect-line"/>
+
+  <!-- Title -->
+  <text x="700" y="40" style="font-family: Arial, sans-serif; font-size: 22px; font-weight: bold; text-anchor: middle;">
+    SƠ ĐỒ USE CASE - HỆ THỐNG ĐẶT VÀ GIAO ĐỒ ĂN TRỰC TUYẾN
+  </text>
+
+  <!-- Legend -->
+  <rect x="50" y="980" width="400" height="100" rx="5" fill="#fff" stroke="#333" stroke-width="1"/>
+  <text x="250" y="1005" style="font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; text-anchor: middle;">CHÚ THÍCH</text>
+  
+  <g transform="translate(70, 1025)">
+    <circle cx="0" cy="0" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+    <line x1="0" y1="10" x2="0" y2="25" stroke="#333" stroke-width="1.5"/>
+    <line x1="-12" y1="15" x2="12" y2="15" stroke="#333" stroke-width="1.5"/>
+    <text x="25" y="5" style="font-family: Arial; font-size: 11px;">Actor (Tác nhân)</text>
+  </g>
+
+  <g transform="translate(180, 1030)">
+    <ellipse cx="40" cy="0" rx="35" ry="15" fill="#fff" stroke="#333" stroke-width="1.5"/>
+    <text x="100" y="5" style="font-family: Arial; font-size: 11px;">Use Case (Chức năng)</text>
+  </g>
+
+  <g transform="translate(70, 1060)">
+    <line x1="0" y1="0" x2="40" y2="0" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="55" y="5" style="font-family: Arial; font-size: 11px;">Kế thừa (Generalization)</text>
+  </g>
+
+  <g transform="translate(250, 1060)">
+    <line x1="0" y1="0" x2="40" y2="0" stroke="#333" stroke-width="1"/>
+    <text x="55" y="5" style="font-family: Arial; font-size: 11px;">Liên kết (Association)</text>
+  </g>
+
+</svg>
