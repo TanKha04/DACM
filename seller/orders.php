@@ -48,12 +48,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Gửi thông báo cho khách hàng
             $notifStmt->execute([$customerId, 'Đơn hàng đã được xác nhận', "Đơn hàng #$orderId đã được cửa hàng xác nhận."]);
             
-            // Gửi thông báo cho tất cả shipper ngay khi xác nhận
-            $shipperStmt = $pdo->query("SELECT id FROM users WHERE role = 'shipper' AND status = 'active'");
-            $shippers = $shipperStmt->fetchAll(PDO::FETCH_COLUMN);
-            foreach ($shippers as $sid) {
-                $notifStmt->execute([$sid, '🚨 Đơn hàng mới cần giao!', "Có đơn hàng #$orderId từ {$shop['name']} cần giao. Vào mục 'Đơn có sẵn' để nhận đơn!"]);
+            // Lấy vị trí shop để tìm shipper trong khu vực
+            $shopLat = $shop['latitude'] ?? null;
+            $shopLng = $shop['longitude'] ?? null;
+            
+            if ($shopLat && $shopLng) {
+                // Tìm shipper trong bán kính 10km từ shop
+                $shipperStmt = $pdo->prepare("
+                    SELECT u.id, si.current_lat, si.current_lng,
+                           (6371 * acos(cos(radians(?)) * cos(radians(si.current_lat)) * cos(radians(si.current_lng) - radians(?)) + sin(radians(?)) * sin(radians(si.current_lat)))) AS distance
+                    FROM users u 
+                    JOIN shipper_info si ON u.id = si.user_id
+                    WHERE u.role = 'shipper' AND u.status = 'active' 
+                    AND si.is_available = 1
+                    AND si.current_lat IS NOT NULL AND si.current_lng IS NOT NULL
+                    HAVING distance <= 10
+                    ORDER BY distance ASC
+                ");
+                $shipperStmt->execute([$shopLat, $shopLng, $shopLat]);
+                $nearbyShippers = $shipperStmt->fetchAll();
+                
+                // Chỉ gửi thông báo cho shipper trong khu vực (không gửi cho tất cả nếu không có ai gần)
+                foreach ($nearbyShippers as $shipper) {
+                    $notifStmt->execute([$shipper['id'], '🚨 Đơn hàng mới gần bạn!', "Có đơn hàng #$orderId từ {$shop['name']} cách bạn " . round($shipper['distance'], 1) . "km. Ai nhận trước được giao!"]);
+                }
+                // Nếu không có shipper gần, đơn sẽ chờ cho đến khi có shipper vào khu vực
             }
+            // Nếu shop chưa có vị trí, không gửi thông báo (đơn sẽ hiển thị cho tất cả shipper khi họ vào trang)
         } elseif ($action === 'prepare') {
             $notifStmt->execute([$customerId, 'Đơn hàng đang được chuẩn bị', "Đơn hàng #$orderId đang được cửa hàng chuẩn bị."]);
         } elseif ($action === 'ready') {
@@ -187,5 +208,112 @@ foreach ($stmt->fetchAll() as $row) {
             </table>
         </div>
     </div>
+    <!-- Thông báo đơn hàng mới -->
+    <div id="newOrderAlert" style="display: none; position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 20px 25px; border-radius: 15px; box-shadow: 0 10px 40px rgba(39,174,96,0.4); z-index: 9999; max-width: 350px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 40px;">🔔</div>
+            <div>
+                <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">Đơn hàng mới!</div>
+                <div id="newOrderInfo" style="font-size: 14px; opacity: 0.9;"></div>
+            </div>
+        </div>
+        <button onclick="closeNewOrderAlert()" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+        <button onclick="reloadPage()" style="display: block; width: 100%; margin-top: 15px; background: white; color: #27ae60; padding: 10px 20px; border-radius: 8px; border: none; text-align: center; font-weight: bold; cursor: pointer;">Tải lại trang</button>
+    </div>
+    
+    <script>
+    // Kiểm tra đơn hàng mới
+    let lastOrderId = <?= !empty($orders) ? max(array_column($orders, 'id')) : 0 ?>;
+    let soundInterval = null;
+    let soundTimeout = null;
+    
+    // Tạo âm thanh thông báo
+    function playBeepOnce() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            function playBeep(time, freq, duration) {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.5, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+                osc.start(time);
+                osc.stop(time + duration);
+            }
+            
+            const now = audioContext.currentTime;
+            playBeep(now, 800, 0.15);
+            playBeep(now + 0.2, 1000, 0.15);
+            playBeep(now + 0.5, 800, 0.15);
+            playBeep(now + 0.7, 1200, 0.2);
+            
+        } catch (e) {
+            console.log('Audio not supported');
+        }
+    }
+    
+    function startContinuousSound() {
+        stopSound();
+        playBeepOnce();
+        soundInterval = setInterval(() => {
+            playBeepOnce();
+        }, 3000);
+        soundTimeout = setTimeout(() => {
+            stopSound();
+        }, 300000);
+    }
+    
+    function stopSound() {
+        if (soundInterval) {
+            clearInterval(soundInterval);
+            soundInterval = null;
+        }
+        if (soundTimeout) {
+            clearTimeout(soundTimeout);
+            soundTimeout = null;
+        }
+    }
+    
+    function checkNewOrders() {
+        fetch('../api/check_new_orders.php?shop_id=<?= $shop['id'] ?>&last_id=' + lastOrderId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.hasNew && data.order) {
+                    lastOrderId = data.order.id;
+                    showNewOrderAlert(data.order);
+                    startContinuousSound();
+                }
+            })
+            .catch(err => console.log('Check orders error:', err));
+    }
+    
+    function showNewOrderAlert(order) {
+        const alert = document.getElementById('newOrderAlert');
+        const info = document.getElementById('newOrderInfo');
+        info.innerHTML = `Đơn #${order.id} - ${order.customer_name}<br>${formatMoney(order.total_amount)}đ`;
+        alert.style.display = 'block';
+    }
+    
+    function closeNewOrderAlert() {
+        document.getElementById('newOrderAlert').style.display = 'none';
+        stopSound();
+    }
+    
+    function reloadPage() {
+        stopSound();
+        location.reload();
+    }
+    
+    function formatMoney(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    
+    // Kiểm tra mỗi 3 giây
+    setInterval(checkNewOrders, 3000);
+    </script>
 </body>
 </html>

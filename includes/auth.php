@@ -130,8 +130,8 @@ function redirectByRole() {
             header("Location: $base/shipper/dashboard.php");
             break;
         default:
-            // Customer -> về trang chủ home.php
-            header("Location: $base/home.php");
+            // Customer -> về trang customer/index.php
+            header("Location: $base/customer/index.php");
     }
     exit;
 }

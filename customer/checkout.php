@@ -3,6 +3,7 @@
  * Thanh toán đơn hàng
  */
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/location.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireRole('customer');
@@ -22,10 +23,36 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
 
+// Nếu user chưa có số điện thoại, lấy từ đơn hàng gần nhất
+$lastPhone = $user['phone'];
+$lastAddress = $user['address'];
+if (empty($lastPhone) || empty($lastAddress)) {
+    $stmt = $pdo->prepare("SELECT delivery_phone, delivery_address FROM orders WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1");
+    $stmt->execute([$userId]);
+    $lastOrder = $stmt->fetch();
+    if ($lastOrder) {
+        if (empty($lastPhone)) $lastPhone = $lastOrder['delivery_phone'];
+        if (empty($lastAddress)) $lastAddress = $lastOrder['delivery_address'];
+    }
+}
+
 // Lấy địa chỉ đã lưu
 $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY is_default DESC");
 $stmt->execute([$userId]);
 $addresses = $stmt->fetchAll();
+
+// Nếu có địa chỉ mặc định, ưu tiên dùng
+$defaultAddress = null;
+foreach ($addresses as $addr) {
+    if ($addr['is_default']) {
+        $defaultAddress = $addr;
+        break;
+    }
+}
+if ($defaultAddress) {
+    if (empty($lastPhone)) $lastPhone = $defaultAddress['phone'];
+    if (empty($lastAddress)) $lastAddress = $defaultAddress['address'];
+}
 
 // Lấy giỏ hàng của shop này (sản phẩm thường)
 $stmt = $pdo->prepare("SELECT c.*, p.name, p.price, p.image FROM cart c JOIN products p ON c.product_id = p.id WHERE c.user_id = ? AND p.shop_id = ?");
@@ -297,13 +324,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     $orderLat = floatval($_POST['user_lat'] ?? 0);
     $orderLng = floatval($_POST['user_lng'] ?? 0);
     
+    // Lấy phí ship đã tính lại từ JavaScript (nếu có)
+    $calculatedShippingFee = isset($_POST['calculated_shipping_fee']) ? floatval($_POST['calculated_shipping_fee']) : null;
+    
     // Tính lại khoảng cách nếu có tọa độ mới
     $shopLat = $shop['latitude'] ?? null;
     $shopLng = $shop['longitude'] ?? null;
     if ($orderLat && $orderLng && $shopLat && $shopLng) {
         $distance = haversine($orderLat, $orderLng, $shopLat, $shopLng);
-        $shippingResult = calculateShippingFee($distance, $config, $subtotal);
-        $shippingFee = $shippingResult['fee'];
+        
+        // Nếu có phí ship đã tính từ client, sử dụng nó (đã được validate qua API)
+        if ($calculatedShippingFee !== null) {
+            // Verify lại phí ship để đảm bảo an toàn
+            $shippingResult = calculateShippingFee($distance, $config, $subtotal);
+            $shippingFee = $shippingResult['fee'];
+        } else {
+            $shippingResult = calculateShippingFee($distance, $config, $subtotal);
+            $shippingFee = $shippingResult['fee'];
+        }
     }
     
     if (empty($name) || empty($phone) || empty($address)) {
@@ -316,9 +354,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
             $commissionRate = $shop['commission_rate'] ?? 10;
             $commissionFee = $subtotal * ($commissionRate / 100);
             
-            // Tạo đơn hàng (thêm distance_km)
-            $stmt = $pdo->prepare("INSERT INTO orders (customer_id, shop_id, total_amount, shipping_fee, commission_fee, delivery_address, delivery_phone, delivery_name, distance_km, payment_method, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
-            $stmt->execute([$userId, $shopId, $subtotal - $discountAmount, $shippingFee, $commissionFee, $address, $phone, $name, round($distance, 2), $paymentMethod, $note]);
+            // Tạo đơn hàng (thêm distance_km và tọa độ giao hàng)
+            $stmt = $pdo->prepare("INSERT INTO orders (customer_id, shop_id, total_amount, shipping_fee, commission_fee, delivery_address, delivery_phone, delivery_name, distance_km, delivery_lat, delivery_lng, payment_method, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+            $stmt->execute([$userId, $shopId, $subtotal - $discountAmount, $shippingFee, $commissionFee, $address, $phone, $name, round($distance, 2), $orderLat ?: null, $orderLng ?: null, $paymentMethod, $note]);
             $orderId = $pdo->lastInsertId();
             
             // Thêm chi tiết đơn hàng (sản phẩm thường)
@@ -396,6 +434,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
             // Tạo payment record
             $stmt = $pdo->prepare("INSERT INTO payments (order_id, user_id, amount, method, status) VALUES (?, ?, ?, ?, 'pending')");
             $stmt->execute([$orderId, $userId, $subtotal + $shippingFee - $discountAmount, $paymentMethod]);
+            
+            // Cập nhật số điện thoại và địa chỉ vào profile user (nếu chưa có)
+            $updateFields = [];
+            $updateParams = [];
+            if (empty($user['phone']) && !empty($phone)) {
+                $updateFields[] = "phone = ?";
+                $updateParams[] = $phone;
+            }
+            if (empty($user['address']) && !empty($address)) {
+                $updateFields[] = "address = ?";
+                $updateParams[] = $address;
+            }
+            if ($orderLat && $orderLng && (empty($user['lat']) || empty($user['lng']))) {
+                $updateFields[] = "lat = ?";
+                $updateFields[] = "lng = ?";
+                $updateParams[] = $orderLat;
+                $updateParams[] = $orderLng;
+            }
+            if (!empty($updateFields)) {
+                $updateParams[] = $userId;
+                $stmt = $pdo->prepare("UPDATE users SET " . implode(", ", $updateFields) . " WHERE id = ?");
+                $stmt->execute($updateParams);
+            }
             
             // Xóa giỏ hàng (sản phẩm thường)
             $stmt = $pdo->prepare("DELETE FROM cart WHERE user_id = ? AND product_id IN (SELECT id FROM products WHERE shop_id = ?)");
@@ -496,15 +557,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                         </div>
                         <div class="form-group">
                             <label>Số điện thoại *</label>
-                            <input type="tel" name="phone" id="input_phone" value="<?= htmlspecialchars($user['phone']) ?>" required>
+                            <input type="tel" name="phone" id="input_phone" value="<?= htmlspecialchars($lastPhone ?? '') ?>" required>
                         </div>
                         <div class="form-group">
                             <label>Địa chỉ giao hàng *
                                 <button type="button" onclick="openMapModal()" style="margin-left: 10px; background: #3498db; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 14px; cursor: pointer;">📍 Chọn vị trí trên bản đồ</button>
                             </label>
-                            <textarea name="address" id="input_address" rows="3" required><?= htmlspecialchars($user['address']) ?></textarea>
-                            <input type="hidden" name="user_lat" id="user_lat">
-                            <input type="hidden" name="user_lng" id="user_lng">
+                            <textarea name="address" id="input_address" rows="3" required><?= htmlspecialchars($lastAddress ?? '') ?></textarea>
+                            <input type="hidden" name="user_lat" id="user_lat" value="<?= $defaultAddress['latitude'] ?? ($user['lat'] ?? '') ?>">
+                            <input type="hidden" name="user_lng" id="user_lng" value="<?= $defaultAddress['longitude'] ?? ($user['lng'] ?? '') ?>">
                         </div>
                         
                         <!-- Leaflet Map Modal -->
@@ -513,9 +574,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                             <div style="background:white; border-radius:12px; padding:20px; max-width:95vw; max-height:90vh; position:relative;">
                                 <h3 style="margin-bottom: 15px;">📍 Chọn vị trí giao hàng</h3>
                                 <div id="leafletMap" style="width:500px; max-width:85vw; height:350px; border-radius: 8px;"></div>
-                                <div style="margin-top: 15px; text-align: right;">
-                                    <button type="button" onclick="closeMapModal()" style="padding:8px 20px; background:#dc3545; color:white; border:none; border-radius:6px; cursor:pointer; margin-right: 10px;">Đóng</button>
-                                    <button type="button" onclick="selectLocation()" style="padding:8px 20px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer;">Chọn vị trí này</button>
+                                <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                                    <button type="button" onclick="goToCurrentLocation()" style="padding:8px 16px; background:#3498db; color:white; border:none; border-radius:6px; cursor:pointer;">
+                                        📍 Vị trí hiện tại
+                                    </button>
+                                    <div>
+                                        <button type="button" onclick="closeMapModal()" style="padding:8px 20px; background:#dc3545; color:white; border:none; border-radius:6px; cursor:pointer; margin-right: 10px;">Đóng</button>
+                                        <button type="button" onclick="selectLocation()" style="padding:8px 20px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer;">Chọn vị trí này</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -532,45 +598,232 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                             document.getElementById('mapModal').style.display = 'none';
                         }
                         
+                        // Hàm tính điểm gần nhất trong phạm vi 10km từ shop
+                        function getClosestPointInRange(shopLat, shopLng, userLat, userLng, maxDistKm) {
+                            const dist = calculateDistanceJS(shopLat, shopLng, userLat, userLng);
+                            if (dist <= maxDistKm) {
+                                return { lat: userLat, lng: userLng, adjusted: false };
+                            }
+                            // Tính điểm trên đường thẳng từ shop đến user, cách shop maxDistKm * 0.95 (để có margin)
+                            const ratio = (maxDistKm * 0.95) / dist;
+                            const newLat = shopLat + (userLat - shopLat) * ratio;
+                            const newLng = shopLng + (userLng - shopLng) * ratio;
+                            return { lat: newLat, lng: newLng, adjusted: true };
+                        }
+                        
+                        // Hàm di chuyển đến vị trí hiện tại
+                        function goToCurrentLocation() {
+                            if (!navigator.geolocation) {
+                                alert('Trình duyệt không hỗ trợ định vị!');
+                                return;
+                            }
+                            
+                            navigator.geolocation.getCurrentPosition(function(pos) {
+                                const lat = pos.coords.latitude;
+                                const lng = pos.coords.longitude;
+                                
+                                // Kiểm tra khoảng cách đến shop
+                                const shopLatVal = <?= json_encode($shopLat ?: 0) ?>;
+                                const shopLngVal = <?= json_encode($shopLng ?: 0) ?>;
+                                
+                                let finalLat = lat;
+                                let finalLng = lng;
+                                
+                                if (shopLatVal && shopLngVal) {
+                                    const result = getClosestPointInRange(shopLatVal, shopLngVal, lat, lng, MAX_DISTANCE_KM);
+                                    finalLat = result.lat;
+                                    finalLng = result.lng;
+                                    
+                                    if (result.adjusted) {
+                                        // Hiển thị thông báo nhẹ nhàng thay vì chặn
+                                        showMapNotice('📍 Vị trí của bạn nằm ngoài phạm vi ' + MAX_DISTANCE_KM + 'km. Đã chọn vị trí gần nhất trong vùng giao hàng.');
+                                    }
+                                }
+                                
+                                selectedLat = finalLat;
+                                selectedLng = finalLng;
+                                
+                                if (leafletMap && leafletMarker) {
+                                    leafletMap.setView([finalLat, finalLng], 14);
+                                    leafletMarker.setLatLng([finalLat, finalLng]);
+                                }
+                            }, function(error) {
+                                let msg = 'Không thể xác định vị trí!';
+                                if (error.code === 1) msg = 'Bạn đã từ chối quyền truy cập vị trí!';
+                                else if (error.code === 2) msg = 'Không thể xác định vị trí!';
+                                else if (error.code === 3) msg = 'Hết thời gian chờ!';
+                                alert(msg);
+                            }, {
+                                enableHighAccuracy: true,
+                                timeout: 10000,
+                                maximumAge: 0
+                            });
+                        }
+                        
+                        // Hiển thị thông báo trên bản đồ
+                        function showMapNotice(message) {
+                            let notice = document.getElementById('mapNotice');
+                            if (!notice) {
+                                notice = document.createElement('div');
+                                notice.id = 'mapNotice';
+                                notice.style.cssText = 'position:absolute;bottom:60px;left:10px;right:10px;background:#fff3cd;color:#856404;padding:10px 15px;border-radius:8px;font-size:13px;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,0.2);';
+                                document.getElementById('leafletMap').parentElement.appendChild(notice);
+                            }
+                            notice.innerHTML = message;
+                            notice.style.display = 'block';
+                            setTimeout(() => { notice.style.display = 'none'; }, 5000);
+                        }
+                        
                         function initLeafletMap() {
                             if (leafletMap) return;
+                            
+                            const shopLatVal = <?= json_encode($shopLat ?: 0) ?>;
+                            const shopLngVal = <?= json_encode($shopLng ?: 0) ?>;
                             
                             // Lấy vị trí hiện tại hoặc mặc định
                             if (navigator.geolocation) {
                                 navigator.geolocation.getCurrentPosition(function(pos) {
-                                    setupMap([pos.coords.latitude, pos.coords.longitude]);
+                                    let userLat = pos.coords.latitude;
+                                    let userLng = pos.coords.longitude;
+                                    
+                                    // Nếu vị trí ngoài phạm vi, điều chỉnh về vị trí gần nhất trong vùng
+                                    if (shopLatVal && shopLngVal) {
+                                        const result = getClosestPointInRange(shopLatVal, shopLngVal, userLat, userLng, MAX_DISTANCE_KM);
+                                        userLat = result.lat;
+                                        userLng = result.lng;
+                                        if (result.adjusted) {
+                                            setTimeout(() => {
+                                                showMapNotice('📍 Vị trí của bạn nằm ngoài phạm vi ' + MAX_DISTANCE_KM + 'km. Vui lòng chọn vị trí giao hàng trong vùng màu cam.');
+                                            }, 500);
+                                        }
+                                    }
+                                    
+                                    setupMap([userLat, userLng]);
                                 }, function() {
-                                    setupMap([10.762622, 106.660172]); // HCM mặc định
+                                    // Nếu không lấy được GPS, dùng vị trí shop làm mặc định
+                                    if (shopLatVal && shopLngVal) {
+                                        setupMap([shopLatVal, shopLngVal]);
+                                    } else {
+                                        setupMap([<?= DEFAULT_LAT ?>, <?= DEFAULT_LNG ?>]);
+                                    }
                                 });
                             } else {
-                                setupMap([10.762622, 106.660172]);
+                                if (shopLatVal && shopLngVal) {
+                                    setupMap([shopLatVal, shopLngVal]);
+                                } else {
+                                    setupMap([<?= DEFAULT_LAT ?>, <?= DEFAULT_LNG ?>]);
+                                }
                             }
                         }
                         
+                        // Giới hạn phạm vi 10km
+                        const MAX_DISTANCE_KM = 10;
+                        let shopCircle = null;
+                        let shopMarker = null;
+                        
                         function setupMap(center) {
+                            const shopLatVal = <?= json_encode($shopLat ?: 0) ?>;
+                            const shopLngVal = <?= json_encode($shopLng ?: 0) ?>;
+                            
+                            // Đảm bảo center nằm trong phạm vi
+                            if (shopLatVal && shopLngVal) {
+                                const result = getClosestPointInRange(shopLatVal, shopLngVal, center[0], center[1], MAX_DISTANCE_KM);
+                                center = [result.lat, result.lng];
+                            }
+                            
                             selectedLat = center[0];
                             selectedLng = center[1];
                             
-                            leafletMap = L.map('leafletMap').setView(center, 16);
+                            // Nếu có vị trí shop, dùng shop làm tâm bản đồ
+                            const mapCenter = (shopLatVal && shopLngVal) ? [shopLatVal, shopLngVal] : center;
+                            
+                            leafletMap = L.map('leafletMap').setView(mapCenter, 13);
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 maxZoom: 19,
                                 attribution: '© OpenStreetMap'
                             }).addTo(leafletMap);
                             
+                            // Vẽ vòng tròn 10km từ shop
+                            if (shopLatVal && shopLngVal) {
+                                shopCircle = L.circle([shopLatVal, shopLngVal], {
+                                    color: '#ff6b35',
+                                    fillColor: '#ff6b35',
+                                    fillOpacity: 0.1,
+                                    radius: MAX_DISTANCE_KM * 1000, // 10km = 10000m
+                                    weight: 2
+                                }).addTo(leafletMap);
+                                
+                                // Marker cho shop
+                                shopMarker = L.marker([shopLatVal, shopLngVal], {
+                                    icon: L.divIcon({
+                                        className: 'shop-marker',
+                                        html: '<div style="background:#ff6b35;color:white;padding:5px 10px;border-radius:20px;font-size:12px;white-space:nowrap;">🏪 Cửa hàng</div>',
+                                        iconSize: [80, 30],
+                                        iconAnchor: [40, 15]
+                                    })
+                                }).addTo(leafletMap);
+                                
+                                // Giới hạn view trong phạm vi 10km
+                                leafletMap.setMaxBounds(shopCircle.getBounds().pad(0.1));
+                                leafletMap.fitBounds(shopCircle.getBounds());
+                            }
+                            
+                            // Marker cho vị trí giao hàng (đặt trong vùng cho phép)
                             leafletMarker = L.marker(center, {draggable: true}).addTo(leafletMap);
                             
                             leafletMarker.on('dragend', function(e) {
                                 const latlng = e.target.getLatLng();
+                                // Kiểm tra khoảng cách đến shop
+                                if (shopLatVal && shopLngVal) {
+                                    const dist = calculateDistanceJS(shopLatVal, shopLngVal, latlng.lat, latlng.lng);
+                                    if (dist > MAX_DISTANCE_KM) {
+                                        // Tự động điều chỉnh về vị trí gần nhất trong vùng
+                                        const result = getClosestPointInRange(shopLatVal, shopLngVal, latlng.lat, latlng.lng, MAX_DISTANCE_KM);
+                                        leafletMarker.setLatLng([result.lat, result.lng]);
+                                        selectedLat = result.lat;
+                                        selectedLng = result.lng;
+                                        showMapNotice('📍 Đã điều chỉnh về vị trí gần nhất trong phạm vi giao hàng ' + MAX_DISTANCE_KM + 'km');
+                                        return;
+                                    }
+                                }
                                 selectedLat = latlng.lat;
                                 selectedLng = latlng.lng;
                             });
                             
                             leafletMap.on('click', function(e) {
+                                // Kiểm tra khoảng cách đến shop
+                                if (shopLatVal && shopLngVal) {
+                                    const dist = calculateDistanceJS(shopLatVal, shopLngVal, e.latlng.lat, e.latlng.lng);
+                                    if (dist > MAX_DISTANCE_KM) {
+                                        showMapNotice('⚠️ Vui lòng chọn vị trí trong vùng màu cam (phạm vi ' + MAX_DISTANCE_KM + 'km)');
+                                        return;
+                                    }
+                                }
                                 selectedLat = e.latlng.lat;
                                 selectedLng = e.latlng.lng;
                                 leafletMarker.setLatLng(e.latlng);
                             });
                         }
+                        
+                        // Tính khoảng cách giữa 2 điểm (Haversine formula)
+                        function calculateDistanceJS(lat1, lon1, lat2, lon2) {
+                            const R = 6371; // km
+                            const dLat = (lat2 - lat1) * Math.PI / 180;
+                            const dLon = (lon2 - lon1) * Math.PI / 180;
+                            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                                      Math.sin(dLon/2) * Math.sin(dLon/2);
+                            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                            return R * c;
+                        }
+                        
+                        // Vị trí ban đầu của user
+                        const originalUserLat = <?= json_encode($userLat ?: 0) ?>;
+                        const originalUserLng = <?= json_encode($userLng ?: 0) ?>;
+                        const shopLat = <?= json_encode($shopLat ?: 0) ?>;
+                        const shopLng = <?= json_encode($shopLng ?: 0) ?>;
+                        const shopId = <?= $shopId ?>;
+                        const subtotal = <?= $subtotal ?>;
                         
                         function selectLocation() {
                             if (!selectedLat || !selectedLng) {
@@ -580,6 +833,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                             
                             document.getElementById('user_lat').value = selectedLat;
                             document.getElementById('user_lng').value = selectedLng;
+                            
+                            // Kiểm tra khoảng cách từ vị trí mới đến vị trí ban đầu
+                            let distanceFromOriginal = 0;
+                            if (originalUserLat && originalUserLng) {
+                                distanceFromOriginal = calculateDistanceJS(originalUserLat, originalUserLng, selectedLat, selectedLng);
+                            }
+                            
+                            // Nếu vị trí mới cách vị trí ban đầu >= 10km, tính lại phí ship
+                            if (distanceFromOriginal >= 10) {
+                                recalculateShipping(selectedLat, selectedLng, distanceFromOriginal);
+                            } else if (shopLat && shopLng) {
+                                // Vẫn tính lại phí ship theo khoảng cách đến shop
+                                recalculateShipping(selectedLat, selectedLng, distanceFromOriginal);
+                            }
                             
                             // Lấy địa chỉ từ tọa độ qua Nominatim
                             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLat}&lon=${selectedLng}&accept-language=vi`)
@@ -593,6 +860,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                                 .catch(() => {
                                     closeMapModal();
                                 });
+                        }
+                        
+                        // Hàm tính lại phí ship qua API
+                        function recalculateShipping(newLat, newLng, distanceFromOriginal) {
+                            fetch(`../api/calculate_shipping.php?shop_id=${shopId}&lat=${newLat}&lng=${newLng}&subtotal=${subtotal}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Cập nhật hiển thị phí ship
+                                        updateShippingDisplay(data, distanceFromOriginal);
+                                    }
+                                })
+                                .catch(err => console.error('Lỗi tính phí ship:', err));
+                        }
+                        
+                        // Cập nhật giao diện hiển thị phí ship
+                        function updateShippingDisplay(data, distanceFromOriginal) {
+                            const shippingEl = document.getElementById('shipping-fee-display');
+                            const distanceEl = document.getElementById('distance-display');
+                            const totalEl = document.getElementById('total-display');
+                            const warningEl = document.getElementById('distance-warning');
+                            
+                            if (distanceEl) {
+                                distanceEl.textContent = data.distance_km.toFixed(1) + ' km';
+                            }
+                            
+                            if (shippingEl) {
+                                if (data.is_free_ship) {
+                                    shippingEl.innerHTML = '<span style="color: #27ae60;"><strong>MIỄN PHÍ</strong></span>';
+                                } else {
+                                    shippingEl.textContent = new Intl.NumberFormat('vi-VN').format(data.shipping_fee) + 'đ';
+                                }
+                            }
+                            
+                            // Hiển thị cảnh báo nếu vị trí xa >= 10km
+                            if (warningEl) {
+                                if (distanceFromOriginal >= 10) {
+                                    warningEl.style.display = 'block';
+                                    warningEl.innerHTML = `⚠️ Vị trí giao hàng cách vị trí ban đầu <strong>${distanceFromOriginal.toFixed(1)} km</strong>. Phí ship đã được tính lại.`;
+                                } else {
+                                    warningEl.style.display = 'none';
+                                }
+                            }
+                            
+                            // Cập nhật tổng tiền
+                            if (totalEl) {
+                                const serviceFee = <?= $serviceFee ?>;
+                                const discount = <?= $discount ?>;
+                                const newTotal = subtotal + data.shipping_fee + serviceFee - discount;
+                                totalEl.textContent = new Intl.NumberFormat('vi-VN').format(newTotal) + 'đ';
+                            }
+                            
+                            // Cập nhật hidden input cho phí ship mới
+                            let hiddenShipFee = document.getElementById('calculated_shipping_fee');
+                            if (!hiddenShipFee) {
+                                hiddenShipFee = document.createElement('input');
+                                hiddenShipFee.type = 'hidden';
+                                hiddenShipFee.id = 'calculated_shipping_fee';
+                                hiddenShipFee.name = 'calculated_shipping_fee';
+                                document.querySelector('form').appendChild(hiddenShipFee);
+                            }
+                            hiddenShipFee.value = data.shipping_fee;
                         }
                         </script>
                         <div class="form-group">
@@ -656,18 +985,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                             <span>Tạm tính</span>
                             <span><?= number_format($subtotal) ?>đ</span>
                         </div>
+                        <!-- Cảnh báo khi vị trí xa -->
+                        <div id="distance-warning" style="display: none; background: #fff3cd; border: 1px solid #ffc107; padding: 10px 12px; border-radius: 6px; font-size: 13px; color: #856404; margin-bottom: 10px;">
+                        </div>
+                        
                         <div class="summary-item">
                             <span>
-                                Phí giao hàng (<?= round($distance, 1) ?> km)
+                                Phí giao hàng (<span id="distance-display"><?= round($distance, 1) ?> km</span>)
                                 <?php if ($isPeakHour): ?>
                                 <span style="background: #e74c3c; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">Giờ cao điểm</span>
                                 <?php endif; ?>
                             </span>
+                            <span id="shipping-fee-display">
                             <?php if ($isFreeShip): ?>
                             <span style="color: #27ae60;"><s style="color: #999;"><?= number_format($config['base_fee'] + ceil($distance) * $config['price_per_km']) ?>đ</s> <strong>MIỄN PHÍ</strong></span>
                             <?php else: ?>
-                            <span><?= number_format($shippingFee) ?>đ</span>
+                            <?= number_format($shippingFee) ?>đ
                             <?php endif; ?>
+                            </span>
                         </div>
                         <?php if (!$isFreeShip && $subtotal < $freeShipMin): ?>
                         <div style="background: #fff3cd; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: #856404; margin-bottom: 10px;">
@@ -758,7 +1093,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
                         
                         <div class="summary-item summary-total">
                             <span>Tổng cộng</span>
-                            <span><?= number_format($total - $discount) ?>đ</span>
+                            <span id="total-display"><?= number_format($total - $discount) ?>đ</span>
                         </div>
                         
                         <button type="submit" name="place_order" value="1" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 15px; font-size: 16px;">

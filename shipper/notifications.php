@@ -42,7 +42,7 @@ $base = getBaseUrl();
         .notif-container { max-width: 800px; margin: 0 auto; }
         
         .notif-header {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
             border-radius: 20px;
             padding: 30px;
             color: white;
@@ -50,6 +50,7 @@ $base = getBaseUrl();
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 3px solid #fbbf24;
         }
         .notif-header-info h2 { font-size: 24px; margin-bottom: 8px; }
         .notif-header-info p { opacity: 0.9; font-size: 14px; }
@@ -88,12 +89,12 @@ $base = getBaseUrl();
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .filter-btn.active, .filter-btn:hover {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
             color: white;
         }
         .mark-read-btn {
             padding: 10px 20px;
-            background: #10b981;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
             color: white;
             border: none;
             border-radius: 10px;
@@ -102,7 +103,7 @@ $base = getBaseUrl();
             text-decoration: none;
             transition: all 0.3s;
         }
-        .mark-read-btn:hover { background: #059669; }
+        .mark-read-btn:hover { background: #b91c1c; }
         
         .notif-list { display: flex; flex-direction: column; gap: 15px; }
         
@@ -124,8 +125,8 @@ $base = getBaseUrl();
             box-shadow: 0 5px 25px rgba(0,0,0,0.12);
         }
         .notif-card.unread {
-            border-left-color: #3b82f6;
-            background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+            border-left-color: #dc2626;
+            background: linear-gradient(135deg, #fff5f5, #fef3c7);
         }
         .notif-card.unread::before {
             content: '';
@@ -134,7 +135,7 @@ $base = getBaseUrl();
             right: 20px;
             width: 10px;
             height: 10px;
-            background: #3b82f6;
+            background: #dc2626;
             border-radius: 50%;
         }
         
@@ -148,10 +149,10 @@ $base = getBaseUrl();
             font-size: 24px;
             flex-shrink: 0;
         }
-        .notif-icon.order { background: linear-gradient(135deg, #fef3c7, #fde68a); }
-        .notif-icon.delivery { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+        .notif-icon.order { background: linear-gradient(135deg, #fef3c7, #fbbf24); }
+        .notif-icon.delivery { background: linear-gradient(135deg, #fecaca, #fca5a5); }
         .notif-icon.alert { background: linear-gradient(135deg, #fee2e2, #fecaca); }
-        .notif-icon.info { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+        .notif-icon.info { background: linear-gradient(135deg, #fef3c7, #fde68a); }
         
         .notif-content { flex: 1; }
         .notif-title {
@@ -169,7 +170,7 @@ $base = getBaseUrl();
             border-radius: 20px;
             font-weight: 500;
         }
-        .notif-badge.new { background: #3b82f6; color: white; }
+        .notif-badge.new { background: #dc2626; color: white; }
         .notif-message {
             color: #6b7280;
             font-size: 14px;

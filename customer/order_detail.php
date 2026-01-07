@@ -171,11 +171,14 @@ $statusSteps = [
                             <strong><?= htmlspecialchars($order['shipper_phone']) ?></strong>
                         </div>
                     </div>
-                    <?php if (in_array($order['status'], ['picked', 'delivering'])): ?>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
                         <a href="tel:<?= $order['shipper_phone'] ?>" class="btn-secondary" style="flex: 1; text-align: center; text-decoration: none; padding: 12px;">📞 Gọi điện</a>
                         <a href="chat_shipper.php?order_id=<?= $orderId ?>" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none; padding: 12px;">💬 Nhắn tin</a>
                     </div>
+                    <?php if (in_array($order['status'], ['ready', 'picked', 'delivering'])): ?>
+                    <a href="track_order.php?id=<?= $orderId ?>" class="btn-primary" style="display: block; text-align: center; text-decoration: none; padding: 15px; margin-top: 10px; background: linear-gradient(135deg, #27ae60, #2ecc71);">
+                        🗺️ Theo dõi shipper trên bản đồ
+                    </a>
                     <?php endif; ?>
                 </div>
                 <?php endif; ?>

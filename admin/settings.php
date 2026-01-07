@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $commission = (float)($_POST['default_commission'] ?? 10);
         $serviceFee = (float)($_POST['service_fee'] ?? 3000);
         $freeShipMin = (float)($_POST['free_ship_min'] ?? 200000);
-        $maxShopDistance = (int)($_POST['max_shop_distance'] ?? 5);
+        $maxShopDistance = (int)($_POST['max_shop_distance'] ?? 15);
         
         $stmt = $pdo->prepare("UPDATE shipping_config SET base_fee = ?, price_per_km = ?, price_per_km_far = ?, peak_hour_rate = ?, default_commission = ?, service_fee = ?, free_ship_min = ?, max_shop_distance = ?");
         $stmt->execute([$baseFee, $pricePerKm, $pricePerKmFar, $peakHourRate, $commission, $serviceFee, $freeShipMin, $maxShopDistance]);
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     <div class="form-group">
                         <label>Khoảng cách hiển thị cửa hàng (km)</label>
-                        <input type="number" name="max_shop_distance" value="<?= (int)($config['max_shop_distance'] ?? 5) ?>" min="1" max="100">
+                        <input type="number" name="max_shop_distance" value="<?= (int)($config['max_shop_distance'] ?? 15) ?>" min="1" max="100">
                         <small style="color: #7f8c8d;">Chỉ hiển thị cửa hàng trong bán kính này với khách hàng</small>
                     </div>
                     

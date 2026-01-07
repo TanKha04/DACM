@@ -1,0 +1,267 @@
+/* ===== TẾT THEME - Phong cách Tết Nguyên Đán ===== */
+
+/* Màu sắc Tết */
+:root {
+    --tet-red: #dc2626;
+    --tet-red-dark: #b91c1c;
+    --tet-red-light: #fecaca;
+    --tet-gold: #fbbf24;
+    --tet-gold-dark: #d97706;
+    --tet-gold-light: #fef3c7;
+    --tet-pink: #f472b6;
+    --tet-yellow: #facc15;
+}
+
+/* Hoa mai rơi */
+@keyframes fall {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0.3; }
+}
+
+@keyframes sway {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(30px); }
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+@keyframes firework {
+    0% { transform: scale(0); opacity: 1; }
+    50% { opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* Container hoa mai */
+.tet-flowers {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.flower {
+    position: absolute;
+    font-size: 20px;
+    animation: fall linear infinite, sway ease-in-out infinite;
+}
+
+/* Pháo hoa */
+.fireworks {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+}
+
+.firework-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: firework 1.5s ease-out infinite;
+}
+
+/* Banner Tết */
+.tet-banner {
+    background: linear-gradient(135deg, var(--tet-red), var(--tet-red-dark));
+    color: white;
+    padding: 15px 25px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+}
+
+.tet-banner::before,
+.tet-banner::after {
+    content: '🧧';
+    position: absolute;
+    font-size: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.tet-banner::before { left: 20px; }
+.tet-banner::after { right: 20px; }
+
+/* Đèn lồng */
+.lantern {
+    position: fixed;
+    font-size: 40px;
+    animation: sway 3s ease-in-out infinite;
+    z-index: 9997;
+}
+
+.lantern-left {
+    top: 80px;
+    left: 20px;
+}
+
+.lantern-right {
+    top: 80px;
+    right: 20px;
+}
+
+/* Khung viền Tết */
+.tet-border {
+    border: 3px solid var(--tet-red) !important;
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.3), inset 0 0 20px rgba(251, 191, 36, 0.1) !important;
+}
+
+/* Nút Tết */
+.btn-tet {
+    background: linear-gradient(135deg, var(--tet-red), var(--tet-red-dark)) !important;
+    color: white !important;
+    border: 2px solid var(--tet-gold) !important;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-tet::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
+/* Card Tết */
+.card-tet {
+    background: linear-gradient(135deg, #fff5f5, #fffbeb) !important;
+    border: 2px solid var(--tet-red) !important;
+    position: relative;
+}
+
+.card-tet::before {
+    content: '🌸';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 25px;
+}
+
+/* Chữ vàng Tết */
+.tet-gold-text {
+    color: var(--tet-gold-dark) !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Chữ đỏ Tết */
+.tet-red-text {
+    color: var(--tet-red) !important;
+}
+
+/* Câu đối */
+.cau-doi {
+    background: var(--tet-red);
+    color: var(--tet-gold);
+    padding: 20px 15px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    position: fixed;
+    border-radius: 5px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    z-index: 9996;
+    letter-spacing: 5px;
+}
+
+.cau-doi-left {
+    left: 10px;
+    top: 150px;
+}
+
+.cau-doi-right {
+    right: 10px;
+    top: 150px;
+}
+
+/* Lì xì */
+.li-xi {
+    background: linear-gradient(135deg, var(--tet-red), #991b1b);
+    color: var(--tet-gold);
+    padding: 10px 20px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+}
+
+/* Hiệu ứng hover Tết */
+.tet-hover:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+}
+
+/* Gradient Tết cho sidebar */
+.sidebar-tet {
+    background: linear-gradient(180deg, var(--tet-red), var(--tet-red-dark)) !important;
+}
+
+/* Header Tết */
+.header-tet {
+    background: linear-gradient(90deg, var(--tet-red), var(--tet-red-dark)) !important;
+}
+
+/* Stat card Tết */
+.stat-card-tet {
+    background: linear-gradient(135deg, #fff5f5, #fffbeb) !important;
+    border: 2px solid var(--tet-red) !important;
+}
+
+.stat-card-tet .value {
+    color: var(--tet-red) !important;
+}
+
+/* Badge Tết */
+.badge-tet {
+    background: linear-gradient(135deg, var(--tet-red), var(--tet-red-dark)) !important;
+    color: var(--tet-gold) !important;
+}
+
+/* Confetti */
+@keyframes confetti-fall {
+    0% { transform: translateY(-100vh) rotate(0deg); }
+    100% { transform: translateY(100vh) rotate(360deg); }
+}
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    animation: confetti-fall linear infinite;
+    z-index: 9995;
+    pointer-events: none;
+}
+
+/* Responsive - ẩn trang trí trên mobile */
+@media (max-width: 768px) {
+    .cau-doi, .lantern { display: none; }
+    .tet-banner::before, .tet-banner::after { display: none; }
+}

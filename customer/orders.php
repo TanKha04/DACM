@@ -133,6 +133,10 @@ foreach ($stmt->fetchAll() as $row) {
                     <button onclick="showCancelModal(<?= $order['id'] ?>)" class="btn-danger" style="padding: 8px 20px;">Hủy đơn</button>
                     <?php endif; ?>
                     
+                    <?php if (in_array($order['status'], ['ready', 'picked', 'delivering'])): ?>
+                    <a href="track_order.php?id=<?= $order['id'] ?>" class="btn-secondary" style="text-decoration: none; padding: 8px 20px; background: #27ae60; color: white; border: none;">🗺️ Theo dõi shipper</a>
+                    <?php endif; ?>
+                    
                     <?php if ($order['status'] === 'delivered'): ?>
                     <?php if (isset($reviewedOrders[$order['id']])): ?>
                     <span style="padding: 8px 15px; background: #d4edda; color: #155724; border-radius: 5px; font-size: 13px;">✓ Đã đánh giá</span>

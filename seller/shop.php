@@ -3,6 +3,7 @@
  * Quản lý thông tin cửa hàng - Seller
  */
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/location.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireRole('seller');
@@ -26,6 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_shop']) && $sh
     $description = trim($_POST['description'] ?? '');
     $address = trim($_POST['address'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
+    
+    // Xử lý tọa độ - chỉ set null nếu thực sự rỗng
+    $latitude = isset($_POST['latitude']) && $_POST['latitude'] !== '' ? floatval($_POST['latitude']) : null;
+    $longitude = isset($_POST['longitude']) && $_POST['longitude'] !== '' ? floatval($_POST['longitude']) : null;
     
     if (empty($name) || empty($address)) {
         $message = 'error:Tên và địa chỉ không được để trống!';
@@ -63,8 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_shop']) && $sh
         }
         
         if (strpos($message, 'error') === false) {
-            $stmt = $pdo->prepare("UPDATE shops SET name = ?, description = ?, address = ?, phone = ?, image = ? WHERE id = ?");
-            $stmt->execute([$name, $description, $address, $phone, $image, $shop['id']]);
+            $stmt = $pdo->prepare("UPDATE shops SET name = ?, description = ?, address = ?, phone = ?, image = ?, latitude = ?, longitude = ? WHERE id = ?");
+            $stmt->execute([$name, $description, $address, $phone, $image, $latitude, $longitude, $shop['id']]);
             
             // Cập nhật lại thông tin shop
             $stmt = $pdo->prepare("SELECT * FROM shops WHERE id = ?");
@@ -111,6 +116,7 @@ $base = getBaseUrl();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý cửa hàng - Seller</title>
     <link rel="stylesheet" href="../assets/css/seller.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         .shop-container { display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
         .shop-form { background: white; border-radius: 20px; padding: 35px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
@@ -235,7 +241,40 @@ $base = getBaseUrl();
                     
                     <div class="form-group">
                         <label>Địa chỉ *</label>
-                        <input type="text" name="address" value="<?= htmlspecialchars($shop['address']) ?>" required>
+                        <input type="text" name="address" id="addressInput" value="<?= htmlspecialchars($shop['address']) ?>" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📍 Vị trí cửa hàng trên bản đồ</label>
+                        
+                        <!-- Tìm kiếm địa chỉ -->
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="searchAddress" placeholder="🔍 Nhập địa chỉ để tìm kiếm..." style="flex: 1; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                                <button type="button" onclick="searchAddress()" style="padding: 12px 20px; background: #9b59b6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    Tìm
+                                </button>
+                            </div>
+                            <div id="searchResults" style="display: none; background: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; max-height: 200px; overflow-y: auto; position: relative; z-index: 1000;"></div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <button type="button" onclick="getCurrentLocation()" class="btn" style="flex: 1; padding: 12px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                🎯 Lấy vị trí hiện tại (GPS)
+                            </button>
+                        </div>
+                        <div id="map" style="height: 300px; border-radius: 12px; margin-bottom: 10px;"></div>
+                        <p style="font-size: 12px; color: #888; margin-bottom: 10px;">💡 Click hoặc kéo marker trên bản đồ để chọn vị trí - sẽ tự động lưu!</p>
+                        <div id="locationStatus" style="font-size: 13px; margin-bottom: 10px; font-weight: 500;"></div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" name="latitude" id="latitude" value="<?= $shop['latitude'] ?? '' ?>" placeholder="Vĩ độ" readonly style="flex: 1; background: #f5f5f5;">
+                            <input type="text" name="longitude" id="longitude" value="<?= $shop['longitude'] ?? '' ?>" placeholder="Kinh độ" readonly style="flex: 1; background: #f5f5f5;">
+                        </div>
+                        <?php if (!$shop['latitude'] || !$shop['longitude']): ?>
+                        <p style="color: #e74c3c; font-size: 13px; margin-top: 10px;">⚠️ Cửa hàng chưa có vị trí! Khách hàng sẽ không thể tìm thấy bạn trên bản đồ.</p>
+                        <?php else: ?>
+                        <p style="color: #27ae60; font-size: 13px; margin-top: 10px;">✓ Đã có vị trí: <?= $shop['latitude'] ?>, <?= $shop['longitude'] ?></p>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="form-group">
@@ -332,6 +371,209 @@ $base = getBaseUrl();
             }
             reader.readAsDataURL(input.files[0]);
         }
+    }
+    </script>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+    let map, marker;
+    const defaultLat = <?= $shop['latitude'] ?? DEFAULT_LAT ?>;
+    const defaultLng = <?= $shop['longitude'] ?? DEFAULT_LNG ?>;
+    
+    // Khởi tạo bản đồ
+    document.addEventListener('DOMContentLoaded', function() {
+        map = L.map('map').setView([defaultLat, defaultLng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        
+        // Tạo marker
+        marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
+        
+        // Khi kéo marker
+        marker.on('dragend', function(e) {
+            const latlng = e.target.getLatLng();
+            updateCoords(latlng.lat, latlng.lng);
+            saveShopLocation(latlng.lat, latlng.lng); // Tự động lưu
+        });
+        
+        // Khi click trên bản đồ
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            updateCoords(e.latlng.lat, e.latlng.lng);
+            saveShopLocation(e.latlng.lat, e.latlng.lng); // Tự động lưu
+        });
+        
+        // Nếu đã có tọa độ
+        <?php if ($shop['latitude'] && $shop['longitude']): ?>
+        updateCoords(<?= $shop['latitude'] ?>, <?= $shop['longitude'] ?>);
+        <?php endif; ?>
+    });
+    
+    // Cập nhật tọa độ hiển thị
+    function updateCoords(lat, lng) {
+        document.getElementById('latitude').value = lat.toFixed(8);
+        document.getElementById('longitude').value = lng.toFixed(8);
+        
+        // Lấy địa chỉ từ tọa độ
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.display_name) {
+                    document.getElementById('addressInput').value = data.display_name;
+                }
+            });
+    }
+    
+    // Lưu vị trí vào database
+    function saveShopLocation(lat, lng) {
+        const statusEl = document.getElementById('locationStatus');
+        if (statusEl) {
+            statusEl.innerHTML = '💾 Đang lưu vị trí...';
+            statusEl.style.color = '#3498db';
+        }
+        
+        fetch('<?= getBaseUrl() ?>/api/save_shop_location.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `lat=${lat}&lng=${lng}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (statusEl) {
+                if (data.success) {
+                    statusEl.innerHTML = '✓ Đã lưu vị trí thành công!';
+                    statusEl.style.color = '#27ae60';
+                } else {
+                    statusEl.innerHTML = '⚠️ ' + data.message;
+                    statusEl.style.color = '#e74c3c';
+                }
+            }
+        })
+        .catch(err => {
+            if (statusEl) {
+                statusEl.innerHTML = '⚠️ Lỗi kết nối';
+                statusEl.style.color = '#e74c3c';
+            }
+        });
+    }
+    
+    // Tìm kiếm địa chỉ
+    function searchAddress() {
+        const query = document.getElementById('searchAddress').value.trim();
+        if (!query) {
+            alert('Vui lòng nhập địa chỉ cần tìm!');
+            return;
+        }
+        
+        const resultsDiv = document.getElementById('searchResults');
+        resultsDiv.innerHTML = '<div style="padding: 10px; color: #666;">🔍 Đang tìm kiếm...</div>';
+        resultsDiv.style.display = 'block';
+        
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=5&accept-language=vi`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = '<div style="padding: 10px; color: #e74c3c;">Không tìm thấy địa chỉ. Thử nhập chi tiết hơn.</div>';
+                    return;
+                }
+                
+                let html = '';
+                data.forEach((item) => {
+                    html += `<div onclick="selectAddress(${item.lat}, ${item.lon}, '${item.display_name.replace(/'/g, "\\'")}')" 
+                        style="padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;"
+                        onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">
+                        <strong style="color: #2c3e50;">📍 ${item.display_name.split(',')[0]}</strong>
+                        <p style="margin: 5px 0 0; font-size: 12px; color: #7f8c8d;">${item.display_name}</p>
+                    </div>`;
+                });
+                resultsDiv.innerHTML = html;
+            })
+            .catch(err => {
+                resultsDiv.innerHTML = '<div style="padding: 10px; color: #e74c3c;">Lỗi kết nối. Vui lòng thử lại.</div>';
+            });
+    }
+    
+    function selectAddress(lat, lng, address) {
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('searchAddress').value = '';
+        
+        map.setView([lat, lng], 17);
+        marker.setLatLng([lat, lng]);
+        
+        document.getElementById('latitude').value = parseFloat(lat).toFixed(8);
+        document.getElementById('longitude').value = parseFloat(lng).toFixed(8);
+        document.getElementById('addressInput').value = address;
+        
+        saveShopLocation(lat, lng);
+    }
+    
+    document.getElementById('searchAddress').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchAddress();
+        }
+    });
+    
+    // Lấy vị trí hiện tại
+    function getCurrentLocation() {
+        const statusEl = document.getElementById('locationStatus');
+        const btn = document.querySelector('button[onclick="getCurrentLocation()"]');
+        const originalText = btn.innerHTML;
+        
+        if (!navigator.geolocation) {
+            if (statusEl) {
+                statusEl.innerHTML = '⚠️ Trình duyệt không hỗ trợ định vị. Hãy click trên bản đồ để chọn vị trí.';
+                statusEl.style.color = '#e74c3c';
+            }
+            return;
+        }
+        
+        btn.innerHTML = '⏳ Đang lấy vị trí...';
+        btn.disabled = true;
+        
+        if (statusEl) {
+            statusEl.innerHTML = '🔍 Đang xác định vị trí của bạn...';
+            statusEl.style.color = '#3498db';
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                
+                map.setView([lat, lng], 16);
+                marker.setLatLng([lat, lng]);
+                updateCoords(lat, lng);
+                
+                // Tự động lưu vị trí vào database
+                btn.innerHTML = '💾 Đang lưu...';
+                saveShopLocation(lat, lng);
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '#3498db';
+                    btn.disabled = false;
+                }, 2000);
+            },
+            function(err) {
+                let msg = 'Không thể lấy vị trí tự động. ';
+                if (err.code === 1) msg += 'Bạn đã từ chối quyền truy cập.';
+                else if (err.code === 2) msg += 'Không xác định được.';
+                else if (err.code === 3) msg += 'Hết thời gian chờ.';
+                msg += ' Hãy click trên bản đồ để chọn vị trí.';
+                
+                if (statusEl) {
+                    statusEl.innerHTML = '⚠️ ' + msg;
+                    statusEl.style.color = '#e74c3c';
+                }
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
     }
     </script>
 </body>

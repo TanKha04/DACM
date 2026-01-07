@@ -110,13 +110,13 @@ $base = getBaseUrl();
         }
         
         .tab:hover, .tab.active {
-            background: #e8f5e9;
-            border-bottom-color: #4caf50;
-            color: #4caf50;
+            background: #fff5f5;
+            border-bottom-color: #dc2626;
+            color: #dc2626;
         }
         
         .tab .badge {
-            background: #4caf50;
+            background: #dc2626;
             color: white;
             border-radius: 50%;
             min-width: 18px;
@@ -142,7 +142,7 @@ $base = getBaseUrl();
         }
         
         .btn-icon {
-            background: #4caf50;
+            background: #dc2626;
             color: white;
             border: none;
             width: 32px;
@@ -153,7 +153,7 @@ $base = getBaseUrl();
         }
         
         .btn-icon:hover {
-            background: #388e3c;
+            background: #b91c1c;
         }
         
         .list-content {
@@ -172,14 +172,14 @@ $base = getBaseUrl();
         }
         
         .list-item:hover, .list-item.active {
-            background: #e8f5e9;
+            background: #fff5f5;
         }
         
         .avatar {
             width: 45px;
             height: 45px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #4caf50, #8bc34a);
+            background: linear-gradient(135deg, #dc2626, #fbbf24);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -231,7 +231,7 @@ $base = getBaseUrl();
         .unread-dot {
             width: 10px;
             height: 10px;
-            background: #4caf50;
+            background: #dc2626;
             border-radius: 50%;
         }
         
@@ -273,12 +273,12 @@ $base = getBaseUrl();
         }
         
         .btn-friend {
-            background: #e8f5e9;
-            color: #388e3c;
+            background: #fef3c7;
+            color: #b91c1c;
         }
         
         .btn-friend:hover {
-            background: #c8e6c9;
+            background: #fde68a;
         }
         
         .btn-block {
@@ -291,8 +291,8 @@ $base = getBaseUrl();
         }
         
         .btn-unblock {
-            background: #e8f5e9;
-            color: #388e3c;
+            background: #fef3c7;
+            color: #b91c1c;
         }
         
         .chat-messages {
@@ -314,7 +314,7 @@ $base = getBaseUrl();
         
         .message.sent {
             align-self: flex-end;
-            background: linear-gradient(135deg, #4caf50, #8bc34a);
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
             color: white;
             border-bottom-right-radius: 4px;
         }
@@ -350,11 +350,11 @@ $base = getBaseUrl();
         }
         
         .chat-input input:focus {
-            border-color: #4caf50;
+            border-color: #dc2626;
         }
         
         .chat-input button {
-            background: linear-gradient(135deg, #4caf50, #8bc34a);
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
             color: white;
             border: none;
             padding: 12px 24px;
@@ -405,7 +405,7 @@ $base = getBaseUrl();
             font-size: 12px;
         }
         
-        .btn-accept { background: #4caf50; color: white; }
+        .btn-accept { background: #dc2626; color: white; }
         .btn-reject { background: #f44336; color: white; }
         .btn-cancel { background: #9e9e9e; color: white; }
         
@@ -472,7 +472,7 @@ $base = getBaseUrl();
         }
         
         .search-box:focus {
-            border-color: #4caf50;
+            border-color: #dc2626;
         }
     </style>
 </head>

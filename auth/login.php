@@ -79,10 +79,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $activeTab = 'register';
                 $registerType = $type;
             } else {
-                $role = ($type === 'seller') ? 'seller' : 'customer';
+                $role = 'customer';
+                if ($type === 'seller') $role = 'seller';
+                elseif ($type === 'shipper') $role = 'shipper';
+                
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                $pdo->beginTransaction();
+                
                 $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, status) VALUES (?, ?, ?, ?, 'active')");
                 $stmt->execute([$name, $email, $hashedPassword, $role]);
+                $userId = $pdo->lastInsertId();
+                
+                // Nếu là shipper, tạo thông tin shipper
+                if ($role === 'shipper') {
+                    $vehicleType = $_POST['vehicle_type'] ?? 'Xe máy';
+                    $vehicleNumber = $_POST['vehicle_number'] ?? '';
+                    $stmt = $pdo->prepare("INSERT INTO shipper_info (user_id, vehicle_type, vehicle_number) VALUES (?, ?, ?)");
+                    $stmt->execute([$userId, $vehicleType, $vehicleNumber]);
+                }
+                
+                $pdo->commit();
                 $success = 'Đăng ký thành công! Vui lòng đăng nhập.';
                 $activeTab = 'login';
             }
@@ -315,6 +331,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <h3>Người bán</h3>
                         <p>Mở cửa hàng bán đồ ăn</p>
                     </div>
+                    <div class="register-type-card" onclick="openRegisterForm('shipper')">
+                        <div class="icon">🚚</div>
+                        <h3>Shipper</h3>
+                        <p>Giao hàng kiếm tiền</p>
+                    </div>
                 </div>
                 
                 <p class="switch-text">Đã có tài khoản? <a onclick="switchModal('login')">Đăng nhập</a></p>
@@ -400,6 +421,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         </div>
     </div>
     
+    <!-- Modal Đăng ký Shipper -->
+    <div class="modal-overlay" id="registerShipperModal">
+        <div class="modal">
+            <span class="modal-close" onclick="closeModal('registerShipper')">&times;</span>
+            <div class="modal-header">
+                <h2>🚚 Đăng ký Shipper</h2>
+            </div>
+            <div class="modal-body">
+                <?php if ($error && $registerType === 'shipper'): ?>
+                    <div class="error-msg"><?= htmlspecialchars($error) ?></div>
+                <?php endif; ?>
+                
+                <form method="POST">
+                    <input type="hidden" name="action" value="register">
+                    <input type="hidden" name="register_type" value="shipper">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" placeholder="Nhập email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Họ và tên</label>
+                        <input type="text" name="name" placeholder="Nhập họ tên đầy đủ" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Loại xe</label>
+                        <select name="vehicle_type" style="width:100%; padding:14px 16px; border:1px solid #ddd; border-radius:10px; font-size:15px;">
+                            <option value="Xe máy">Xe máy</option>
+                            <option value="Xe đạp điện">Xe đạp điện</option>
+                            <option value="Ô tô">Ô tô</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Biển số xe</label>
+                        <input type="text" name="vehicle_number" placeholder="VD: 59-X1 12345">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu</label>
+                        <input type="password" name="password" placeholder="Nhập mật khẩu" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu</label>
+                        <input type="password" name="confirm_password" placeholder="Nhập lại mật khẩu" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Đăng ký Shipper</button>
+                </form>
+                
+                <p class="switch-text"><a onclick="switchModal('register')">← Quay lại</a></p>
+            </div>
+        </div>
+    </div>
+    
     <script>
         function openModal(type) {
             closeAllModals();
@@ -423,8 +495,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             closeAllModals();
             if (type === 'buyer') {
                 openModal('registerBuyer');
-            } else {
+            } else if (type === 'seller') {
                 openModal('registerSeller');
+            } else if (type === 'shipper') {
+                openModal('registerShipper');
             }
         }
         
@@ -436,6 +510,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 openModal('registerBuyer');
             <?php elseif ($registerType === 'seller'): ?>
                 openModal('registerSeller');
+            <?php elseif ($registerType === 'shipper'): ?>
+                openModal('registerShipper');
             <?php endif; ?>
         <?php endif; ?>
         

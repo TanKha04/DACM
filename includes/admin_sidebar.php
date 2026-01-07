@@ -4,31 +4,38 @@ $base = getBaseUrl();
 ?>
 <style>
 .sidebar { 
-    background: linear-gradient(180deg, #ff6b35 0%, #f7931e 100%) !important; 
+    background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%) !important; 
+    box-shadow: 4px 0 25px rgba(220,38,38,0.3) !important;
 }
 .sidebar-header {
-    border-bottom: 1px solid rgba(255,255,255,0.2) !important;
+    border-bottom: 2px solid rgba(251,191,36,0.3) !important;
 }
 .sidebar-nav a { 
     font-size: 17px !important; 
     padding: 16px 25px !important; 
-    color: rgba(255,255,255,0.9) !important;
+    color: #fef3c7 !important;
     transition: all 0.3s !important;
+    border-left: 4px solid transparent !important;
 }
 .sidebar-nav a:hover, .sidebar-nav a.active { 
-    background: rgba(255,255,255,0.2) !important; 
-    color: white !important;
+    background: rgba(251,191,36,0.3) !important; 
+    color: #fbbf24 !important;
+    border-left: 4px solid #fbbf24 !important;
 }
 .sidebar-nav a span { font-size: 20px !important; }
 .sidebar-nav .divider { 
-    border-top: 1px solid rgba(255,255,255,0.2) !important; 
+    border-top: 1px solid rgba(251,191,36,0.3) !important; 
 }
 </style>
 <div class="sidebar">
+    <!-- Đèn lồng trang trí -->
+    <div style="position: absolute; top: 10px; right: 10px; font-size: 24px; animation: swing 2s ease-in-out infinite;">🏮</div>
+    <style>@keyframes swing { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }</style>
+    
     <div class="sidebar-header">
-        <a href="<?= $base ?>/admin/dashboard.php" style="text-decoration: none; color: white; display: flex; align-items: center; gap: 10px;">
-            <img src="<?= $base ?>/logo.png" alt="Logo" style="width: 40px; height: 40px; border-radius: 8px;">
-            <span style="font-size: 20px; font-weight: bold;">FastFood Admin</span>
+        <a href="<?= $base ?>/admin/dashboard.php" style="text-decoration: none; color: #fef3c7; display: flex; align-items: center; gap: 10px;">
+            <img src="<?= $base ?>/logo.png" alt="Logo" style="width: 40px; height: 40px; border-radius: 8px; border: 2px solid #fbbf24;">
+            <span style="font-size: 20px; font-weight: bold;">🧧 FastFood Admin</span>
         </a>
     </div>
     <nav class="sidebar-nav">

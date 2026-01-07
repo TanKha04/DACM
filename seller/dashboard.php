@@ -72,6 +72,14 @@ if ($isApproved) {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0.3; }
+        }
+        @keyframes sway {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(20px); }
+        }
         #newOrderAlert.show { animation: slideIn 0.5s ease, pulse 2s infinite; }
         .stat-card { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
         .stat-card:nth-child(1) { animation-delay: 0.1s; }
@@ -79,6 +87,27 @@ if ($isApproved) {
         .stat-card:nth-child(3) { animation-delay: 0.3s; }
         .stat-card:nth-child(4) { animation-delay: 0.4s; }
         .card { animation: fadeInUp 0.5s ease 0.5s forwards; opacity: 0; }
+        
+        /* Hoa mai rơi */
+        .tet-flowers { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+        .flower { position: absolute; animation: fall linear infinite, sway ease-in-out infinite; }
+        
+        /* Banner Tết */
+        .tet-banner {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: #fef3c7;
+            padding: 12px 25px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(220,38,38,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
         
         /* Status text mapping */
         .badge-pending::after { content: 'Chờ xác nhận'; }
@@ -93,18 +122,28 @@ if ($isApproved) {
     </style>
 </head>
 <body>
+    <!-- Hoa mai rơi -->
+    <div class="tet-flowers" id="tetFlowers"></div>
+    
     <?php include '../includes/seller_sidebar.php'; ?>
     
     <div class="main-content">
+        <!-- Banner Tết -->
+        <div class="tet-banner">
+            <span>🧧</span>
+            <span>🌸 Chúc Mừng Năm Mới 2026 - An Khang Thịnh Vượng 🌸</span>
+            <span>🧧</span>
+        </div>
+        
         <div class="page-header">
-            <h1>🏠 Trang chủ</h1>
+            <h1>🏮 Trang chủ</h1>
             <span style="color: #7f8c8d; font-size: 15px;"><?= date('d/m/Y H:i') ?></span>
         </div>
         
         <!-- Welcome Banner -->
         <style>
             .welcome-banner {
-                background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.3) 100%), url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&h=400&fit=crop');
+                background: linear-gradient(135deg, rgba(185,28,28,0.85) 0%, rgba(220,38,38,0.85) 100%), url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&h=400&fit=crop');
                 background-size: cover;
                 background-position: center;
                 border-radius: 20px;
@@ -116,12 +155,15 @@ if ($isApproved) {
                 align-items: center;
                 position: relative;
                 overflow: hidden;
+                border: 3px solid #fbbf24;
+                box-shadow: 0 10px 30px rgba(220,38,38,0.3);
             }
             .welcome-banner h2 {
                 font-size: 28px;
                 font-weight: 700;
                 font-style: italic;
                 margin-bottom: 15px;
+                white-space: nowrap;
             }
             .welcome-badges {
                 display: flex;
@@ -155,9 +197,9 @@ if ($isApproved) {
                 gap: 12px;
             }
             .welcome-btn {
-                background: rgba(255,255,255,0.15);
-                border: 1px solid rgba(255,255,255,0.3);
-                color: white;
+                background: rgba(251,191,36,0.3);
+                border: 2px solid #fbbf24;
+                color: #fef3c7;
                 padding: 10px 20px;
                 border-radius: 25px;
                 text-decoration: none;
@@ -168,7 +210,8 @@ if ($isApproved) {
                 transition: all 0.3s;
             }
             .welcome-btn:hover {
-                background: rgba(255,255,255,0.25);
+                background: rgba(251,191,36,0.5);
+                transform: translateY(-2px);
             }
         </style>
         
@@ -177,11 +220,16 @@ if ($isApproved) {
         if ($hour < 12) $greeting = 'Chào buổi sáng';
         elseif ($hour < 18) $greeting = 'Chào buổi chiều';
         else $greeting = 'Chào buổi tối';
+        
+        // Lời chúc Tết
+        $tetGreetings = ['🧧 Năm mới Phát Tài!', '🌸 Vạn Sự Như Ý!', '🏮 An Khang Thịnh Vượng!'];
+        $tetGreeting = $tetGreetings[array_rand($tetGreetings)];
         ?>
         
         <div class="welcome-banner">
             <div>
                 <h2><?= $greeting ?>, <?= htmlspecialchars($_SESSION['user_name']) ?>!</h2>
+                <p style="font-size: 18px; color: #fbbf24; margin-bottom: 12px; font-weight: 600;"><?= $tetGreeting ?></p>
                 <div class="welcome-badges">
                     <span class="welcome-badge">🏪 Người bán</span>
                     <span class="welcome-badge"><?= $isApproved ? '✅ Đã xác minh' : ($isPending ? '⏳ Chờ duyệt' : '⚠️ Chưa có shop') ?></span>
@@ -275,12 +323,12 @@ if ($isApproved) {
                         <?php else: ?>
                         <?php foreach ($recentOrders as $order): ?>
                         <tr>
-                            <td><strong style="color: #2ecc71;">#<?= $order['id'] ?></strong></td>
+                            <td><strong style="color: #dc2626;">#<?= $order['id'] ?></strong></td>
                             <td>
                                 <div style="font-weight: 500;"><?= htmlspecialchars($order['customer_name']) ?></div>
                                 <small style="color: rgba(255,255,255,0.5);"><?= $order['customer_phone'] ?></small>
                             </td>
-                            <td style="font-weight: 600; color: #2ecc71;"><?= number_format($order['total_amount']) ?>đ</td>
+                            <td style="font-weight: 600; color: #dc2626;"><?= number_format($order['total_amount']) ?>đ</td>
                             <td><span class="badge badge-<?= $order['status'] ?>"><?= $order['status'] ?></span></td>
                             <td style="color: rgba(255,255,255,0.7);"><?= date('H:i d/m', strtotime($order['created_at'])) ?></td>
                             <td><a href="order_detail.php?id=<?= $order['id'] ?>" class="btn btn-sm btn-secondary">Chi tiết</a></td>
@@ -420,5 +468,34 @@ if ($isApproved) {
     }
     </script>
     <?php endif; ?>
+    
+    <!-- Script tạo hoa mai rơi -->
+    <script>
+    (function() {
+        const flowers = ['🌸', '🏮', '🧧', '✨', '💮'];
+        const container = document.getElementById('tetFlowers');
+        
+        function createFlower() {
+            const flower = document.createElement('div');
+            flower.className = 'flower';
+            flower.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+            flower.style.left = Math.random() * 100 + '%';
+            flower.style.fontSize = (15 + Math.random() * 15) + 'px';
+            flower.style.animationDuration = (8 + Math.random() * 7) + 's, ' + (3 + Math.random() * 2) + 's';
+            flower.style.animationDelay = Math.random() * 5 + 's';
+            container.appendChild(flower);
+            
+            setTimeout(() => flower.remove(), 15000);
+        }
+        
+        // Tạo hoa ban đầu
+        for (let i = 0; i < 15; i++) {
+            setTimeout(createFlower, i * 300);
+        }
+        
+        // Tiếp tục tạo hoa
+        setInterval(createFlower, 800);
+    })();
+    </script>
 </body>
 </html>

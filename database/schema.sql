@@ -90,6 +90,8 @@ CREATE TABLE orders (
     delivery_phone VARCHAR(20),
     delivery_name VARCHAR(100),
     distance_km DECIMAL(5, 2) DEFAULT 0,
+    delivery_lat DECIMAL(10, 8) DEFAULT NULL,
+    delivery_lng DECIMAL(11, 8) DEFAULT NULL,
     status ENUM('pending', 'confirmed', 'preparing', 'ready', 'picked', 'delivering', 'delivered', 'cancelled') DEFAULT 'pending',
     payment_method ENUM('cash', 'card', 'ewallet') DEFAULT 'cash',
     payment_status ENUM('pending', 'paid', 'failed') DEFAULT 'pending',
@@ -359,7 +361,7 @@ CREATE TABLE order_messages (
 -- =============================================
 ALTER TABLE users ADD COLUMN lat DECIMAL(10, 8) DEFAULT NULL;
 ALTER TABLE users ADD COLUMN lng DECIMAL(11, 8) DEFAULT NULL;
-ALTER TABLE shipping_config ADD COLUMN max_shop_distance INT DEFAULT 5;
+ALTER TABLE shipping_config ADD COLUMN max_shop_distance INT DEFAULT 20;
 
 
 -- =============================================

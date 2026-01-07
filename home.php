@@ -15,7 +15,7 @@ $isCustomer = !$isLoggedIn || $userRole === 'customer';
 // Lấy cấu hình khoảng cách tối đa
 $stmt = $pdo->query("SELECT max_shop_distance FROM shipping_config LIMIT 1");
 $configDistance = $stmt->fetch();
-$maxDistance = $configDistance['max_shop_distance'] ?? 5;
+$maxDistance = $configDistance['max_shop_distance'] ?? 15;
 
 // Kiểm tra vị trí user nếu đã đăng nhập
 $userLat = null;

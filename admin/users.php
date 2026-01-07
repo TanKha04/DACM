@@ -261,6 +261,11 @@ $adminCount = $stmt->fetch()['count'];
                             <?php endif; ?>
                         </td>
                         <td>
+                            <?php if ($user['is_admin']): ?>
+                            <span class="current-role" style="background: #ffeaa7; color: #d35400;">
+                                👑 Quản trị viên
+                            </span>
+                            <?php else: ?>
                             <span class="current-role role-<?= $user['role'] ?>">
                                 <?php 
                                 switch($user['role']) {
@@ -270,6 +275,7 @@ $adminCount = $stmt->fetch()['count'];
                                 }
                                 ?>
                             </span>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <div class="role-actions">

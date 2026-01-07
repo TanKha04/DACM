@@ -114,6 +114,7 @@ $base = getBaseUrl();
             
             <?php if ($isReady): ?>
             <div class="order-actions">
+                <a href="order_map.php?id=<?= $order['id'] ?>" class="btn btn-info" style="background: #17a2b8; color: white;">🗺️ Xem bản đồ</a>
                 <form method="POST" action="update_status.php" style="flex: 1;">
                     <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
                     <input type="hidden" name="status" value="picked">
@@ -123,6 +124,7 @@ $base = getBaseUrl();
             </div>
             <?php elseif ($isActive): ?>
             <div class="order-actions">
+                <a href="order_map.php?id=<?= $order['id'] ?>" class="btn btn-info" style="background: #17a2b8; color: white;">🗺️ Bản đồ</a>
                 <?php if ($order['status'] === 'picked'): ?>
                 <form method="POST" action="update_status.php" style="flex: 1;">
                     <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
@@ -152,6 +154,64 @@ $base = getBaseUrl();
     <!-- Auto refresh mỗi 30 giây -->
     <script>
     setTimeout(function() { location.reload(); }, 30000);
+    
+    // ===== CẬP NHẬT VỊ TRÍ SHIPPER REALTIME =====
+    <?php 
+    $hasActiveOrder = false;
+    foreach ($orders as $o) {
+        if (in_array($o['status'], ['ready', 'picked', 'delivering'])) {
+            $hasActiveOrder = true;
+            break;
+        }
+    }
+    if ($hasActiveOrder): 
+    ?>
+    function updateShipperLocation(lat, lng) {
+        fetch('../api/shipper_location.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `lat=${lat}&lng=${lng}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                console.log('📍 Đã cập nhật vị trí:', lat.toFixed(6), lng.toFixed(6));
+            }
+        })
+        .catch(err => console.log('Lỗi cập nhật vị trí:', err));
+    }
+    
+    // Theo dõi vị trí liên tục
+    if (navigator.geolocation) {
+        // Lấy vị trí ngay lập tức
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                updateShipperLocation(pos.coords.latitude, pos.coords.longitude);
+            },
+            function(err) {
+                console.log('Không lấy được vị trí:', err.message);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+        
+        // Theo dõi liên tục
+        navigator.geolocation.watchPosition(
+            function(pos) {
+                updateShipperLocation(pos.coords.latitude, pos.coords.longitude);
+            },
+            function(err) {},
+            { enableHighAccuracy: true, maximumAge: 5000 }
+        );
+        
+        // Backup: cập nhật mỗi 10 giây
+        setInterval(() => {
+            navigator.geolocation.getCurrentPosition(
+                pos => updateShipperLocation(pos.coords.latitude, pos.coords.longitude),
+                err => {}
+            );
+        }, 10000);
+    }
+    <?php endif; ?>
     </script>
 </body>
 </html>

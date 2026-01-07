@@ -3,6 +3,7 @@
  * Đăng ký mở cửa hàng - Seller
  */
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/location.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireRole('seller');
@@ -109,14 +110,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 
                 <div class="form-group">
-                    <label>📍 Vị trí cửa hàng</label>
+                    <label>📍 Vị trí cửa hàng trên bản đồ</label>
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                         <button type="button" id="getLocationBtn" class="btn btn-secondary" style="flex: 1;">
                             🎯 Lấy vị trí hiện tại
                         </button>
+                        <button type="button" id="showMapBtn" class="btn btn-secondary" style="flex: 1;">
+                            🗺️ Chọn trên bản đồ
+                        </button>
                     </div>
                     <div id="locationStatus" style="font-size: 13px; color: #666; margin-bottom: 10px;"></div>
-                    <div id="mapContainer" style="height: 250px; border-radius: 8px; background: #f0f0f0; display: none; margin-bottom: 10px;"></div>
+                    <div id="mapContainer" style="height: 300px; border-radius: 8px; background: #f0f0f0; margin-bottom: 10px;"></div>
+                    <p style="font-size: 12px; color: #888; margin-bottom: 10px;">💡 Click hoặc kéo marker trên bản đồ để chọn vị trí chính xác</p>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" name="latitude" id="latitude" placeholder="Vĩ độ (Latitude)" readonly style="flex: 1; background: #f5f5f5;">
                         <input type="text" name="longitude" id="longitude" placeholder="Kinh độ (Longitude)" readonly style="flex: 1; background: #f5f5f5;">
@@ -151,13 +156,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+    let map, marker;
+    const defaultLat = <?= DEFAULT_LAT ?>;
+    const defaultLng = <?= DEFAULT_LNG ?>;
+    
+    // Khởi tạo bản đồ
+    function initMap(lat, lng) {
+        const mapContainer = document.getElementById('mapContainer');
+        
+        if (!map) {
+            map = L.map('mapContainer').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+            
+            marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+            
+            // Khi kéo marker
+            marker.on('dragend', function(e) {
+                const latlng = e.target.getLatLng();
+                updateCoords(latlng.lat, latlng.lng);
+            });
+            
+            // Khi click trên bản đồ
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                updateCoords(e.latlng.lat, e.latlng.lng);
+            });
+        } else {
+            map.setView([lat, lng], 15);
+            marker.setLatLng([lat, lng]);
+        }
+        
+        updateCoords(lat, lng);
+    }
+    
+    // Cập nhật tọa độ
+    function updateCoords(lat, lng) {
+        document.getElementById('latitude').value = lat.toFixed(8);
+        document.getElementById('longitude').value = lng.toFixed(8);
+        
+        // Lấy địa chỉ từ tọa độ
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.display_name) {
+                    document.getElementById('address').value = data.display_name;
+                }
+            });
+    }
+    
+    // Khởi tạo bản đồ khi load trang
+    window.addEventListener('load', function() {
+        initMap(defaultLat, defaultLng);
+    });
+    
     // Lấy vị trí hiện tại
     document.getElementById('getLocationBtn').addEventListener('click', function() {
         const statusEl = document.getElementById('locationStatus');
-        const latInput = document.getElementById('latitude');
-        const lngInput = document.getElementById('longitude');
-        const mapContainer = document.getElementById('mapContainer');
         
         if (!navigator.geolocation) {
             statusEl.innerHTML = '<span style="color: red;">❌ Trình duyệt không hỗ trợ định vị</span>';
@@ -171,14 +231,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 
-                latInput.value = lat.toFixed(8);
-                lngInput.value = lng.toFixed(8);
-                
+                initMap(lat, lng);
                 statusEl.innerHTML = '<span style="color: green;">✅ Đã lấy vị trí thành công!</span>';
-                
-                // Hiển thị bản đồ
-                mapContainer.style.display = 'block';
-                mapContainer.innerHTML = '<iframe width="100%" height="100%" frameborder="0" style="border-radius: 8px;" src="https://www.openstreetmap.org/export/embed.html?bbox=' + (lng - 0.005) + '%2C' + (lat - 0.005) + '%2C' + (lng + 0.005) + '%2C' + (lat + 0.005) + '&layer=mapnik&marker=' + lat + '%2C' + lng + '"></iframe>';
             },
             function(error) {
                 let msg = 'Không thể lấy vị trí';
@@ -197,6 +251,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
+    });
+    
+    // Hiển thị bản đồ
+    document.getElementById('showMapBtn').addEventListener('click', function() {
+        if (map) {
+            map.invalidateSize();
+        }
     });
     
     // Preview ảnh cửa hàng

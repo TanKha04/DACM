@@ -52,8 +52,32 @@ else $greeting = 'Chào buổi tối';
     <title>Admin Dashboard - FastFood</title>
     <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
+        /* Hiệu ứng Tết */
+        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); } 100% { transform: translateY(100vh) rotate(360deg); } }
+        @keyframes sway { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(20px); } }
+        @keyframes swing { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
+        .tet-flowers { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
+        .flower { position: absolute; animation: fall linear infinite, sway ease-in-out infinite; }
+        
+        /* Banner Tết */
+        .tet-banner {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: #fef3c7;
+            padding: 12px 25px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(220,38,38,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
         .welcome-banner {
-            background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.3) 100%), url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&h=400&fit=crop');
+            background: linear-gradient(135deg, rgba(185,28,28,0.9) 0%, rgba(220,38,38,0.85) 100%), url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&h=400&fit=crop');
             background-size: cover;
             background-position: center;
             border-radius: 20px;
@@ -65,12 +89,44 @@ else $greeting = 'Chào buổi tối';
             align-items: center;
             position: relative;
             overflow: hidden;
+            border: 3px solid #fbbf24;
+            box-shadow: 0 10px 30px rgba(220,38,38,0.3);
+        }
+        .welcome-banner > div:first-child {
+            flex: 1;
+            min-width: 0;
+        }
+        .welcome-banner::before {
+            content: '🏮';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 25px;
+            animation: swing 2s ease-in-out infinite;
+        }
+        .welcome-banner::after {
+            content: '🏮';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 25px;
+            animation: swing 2s ease-in-out infinite reverse;
         }
         .welcome-banner h2 {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: 700;
             font-style: italic;
             margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+        .welcome-logo {
+            flex-shrink: 0;
+            text-align: center;
+            margin: 0 20px;
+        }
+        .welcome-actions {
+            flex-shrink: 0;
         }
         .welcome-badges {
             display: flex;
@@ -78,35 +134,36 @@ else $greeting = 'Chào buổi tối';
             margin-bottom: 15px;
         }
         .welcome-badge {
-            background: rgba(255,255,255,0.2);
+            background: rgba(251,191,36,0.3);
+            border: 1px solid #fbbf24;
             padding: 6px 16px;
             border-radius: 20px;
             font-size: 13px;
             display: flex;
             align-items: center;
             gap: 6px;
+            color: #fef3c7;
         }
         .welcome-text {
             opacity: 0.9;
             font-size: 14px;
         }
-        .welcome-logo {
-            text-align: center;
-        }
         .welcome-logo img {
-            width: 180px;
-            height: 180px;
-            border-radius: 30px;
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 3px solid #fbbf24;
         }
         .welcome-actions {
             display: flex;
             gap: 12px;
+            flex-shrink: 0;
         }
         .welcome-btn {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
+            background: rgba(251,191,36,0.3);
+            border: 2px solid #fbbf24;
+            color: #fef3c7;
             padding: 10px 20px;
             border-radius: 25px;
             text-decoration: none;
@@ -115,9 +172,11 @@ else $greeting = 'Chào buổi tối';
             align-items: center;
             gap: 8px;
             transition: all 0.3s;
+            font-weight: 600;
         }
         .welcome-btn:hover {
-            background: rgba(255,255,255,0.25);
+            background: rgba(251,191,36,0.5);
+            transform: translateY(-2px);
         }
         
         .quick-actions {
@@ -130,23 +189,26 @@ else $greeting = 'Chào buổi tối';
             background: white;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(220,38,38,0.1);
             transition: transform 0.3s;
             text-decoration: none;
             color: inherit;
+            border: 2px solid #fecaca;
         }
         .action-card:hover {
             transform: translateY(-5px);
+            border-color: #fbbf24;
+            box-shadow: 0 10px 30px rgba(220,38,38,0.2);
         }
         .action-image {
             height: 120px;
             position: relative;
             overflow: hidden;
         }
-        .action-image.users { background: linear-gradient(135deg, #ff6b35, #ff8c42); }
-        .action-image.shops { background: linear-gradient(135deg, #f7931e, #ffb347); }
-        .action-image.orders { background: linear-gradient(135deg, #ff4d4d, #ff6b6b); }
-        .action-image.finance { background: linear-gradient(135deg, #ff9a56, #ffbe76); }
+        .action-image.users { background: linear-gradient(135deg, #dc2626, #ef4444); }
+        .action-image.shops { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+        .action-image.orders { background: linear-gradient(135deg, #b91c1c, #dc2626); }
+        .action-image.finance { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
         .action-image img {
             position: absolute;
             right: 10px;
@@ -177,7 +239,7 @@ else $greeting = 'Chào buổi tối';
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 8px;
-            color: #2c3e50;
+            color: #991b1b;
         }
         .action-content p {
             font-size: 13px;
@@ -195,7 +257,8 @@ else $greeting = 'Chào buổi tối';
             background: white;
             border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(220,38,38,0.1);
+            border: 2px solid #fecaca;
         }
         .stat-box .icon {
             font-size: 40px;
@@ -205,15 +268,12 @@ else $greeting = 'Chào buổi tối';
             font-size: 32px;
             font-weight: 700;
             margin-bottom: 5px;
+            color: #dc2626;
         }
         .stat-box .label {
             color: #7f8c8d;
             font-size: 14px;
         }
-        .stat-box.blue .value { color: #3498db; }
-        .stat-box.orange .value { color: #f39c12; }
-        .stat-box.green .value { color: #27ae60; }
-        .stat-box.red .value { color: #e74c3c; }
         
         .today-stats {
             display: grid;
@@ -225,7 +285,8 @@ else $greeting = 'Chào buổi tối';
             background: white;
             border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(220,38,38,0.1);
+            border: 2px solid #fecaca;
         }
         .today-box .label {
             color: #7f8c8d;
@@ -235,23 +296,36 @@ else $greeting = 'Chào buổi tối';
         .today-box .value {
             font-size: 36px;
             font-weight: 700;
+            color: #dc2626;
         }
-        .today-box.orders .value { color: #3498db; }
-        .today-box.revenue .value { color: #27ae60; }
         
         .data-section {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 25px;
         }
+        
+        .card {
+            border: 2px solid #fecaca !important;
+        }
     </style>
 </head>
 <body>
+    <!-- Hoa mai rơi -->
+    <div class="tet-flowers" id="tetFlowers"></div>
+    
     <?php include '../includes/admin_sidebar.php'; ?>
     
-    <div class="main-content">
+    <div class="main-content" style="background: #fff5f5;">
+        <!-- Banner Tết -->
+        <div class="tet-banner">
+            <span>🧧</span>
+            <span>🌸 Chúc Mừng Năm Mới 2026 - An Khang Thịnh Vượng 🌸</span>
+            <span>🧧</span>
+        </div>
+        
         <div class="page-header">
-            <h1>🏠 Trang chủ</h1>
+            <h1>🏮 Trang chủ</h1>
             <span style="color: #7f8c8d; font-size: 15px;"><?= date('d/m/Y H:i') ?></span>
         </div>
         
@@ -321,22 +395,22 @@ else $greeting = 'Chào buổi tối';
         
         <!-- Stats Row -->
         <div class="stats-row">
-            <div class="stat-box blue">
+            <div class="stat-box">
                 <div class="icon">👥</div>
                 <div class="value"><?= number_format($totalUsers) ?></div>
                 <div class="label">Tổng người dùng</div>
             </div>
-            <div class="stat-box orange">
+            <div class="stat-box">
                 <div class="icon">📦</div>
                 <div class="value"><?= number_format($totalOrders) ?></div>
                 <div class="label">Tổng đơn hàng</div>
             </div>
-            <div class="stat-box green">
+            <div class="stat-box">
                 <div class="icon">💰</div>
                 <div class="value"><?= number_format($totalRevenue) ?>đ</div>
                 <div class="label">Tổng doanh thu</div>
             </div>
-            <div class="stat-box red">
+            <div class="stat-box">
                 <div class="icon">🏪</div>
                 <div class="value"><?= $pendingShops ?></div>
                 <div class="label">Shop chờ duyệt</div>
@@ -345,11 +419,11 @@ else $greeting = 'Chào buổi tối';
         
         <!-- Today Stats -->
         <div class="today-stats">
-            <div class="today-box orders">
+            <div class="today-box">
                 <div class="label">Đơn hàng hôm nay</div>
                 <div class="value"><?= $todayStats['orders'] ?></div>
             </div>
-            <div class="today-box revenue">
+            <div class="today-box">
                 <div class="label">Doanh thu hôm nay</div>
                 <div class="value"><?= number_format($todayStats['revenue']) ?>đ</div>
             </div>
@@ -417,5 +491,29 @@ else $greeting = 'Chào buổi tối';
             </div>
         </div>
     </div>
+    
+    <!-- Script hoa mai rơi -->
+    <script>
+    (function() {
+        const flowers = ['🌸', '🏮', '🧧', '✨', '💮', '🎊'];
+        const container = document.getElementById('tetFlowers');
+        if (!container) return;
+        
+        function createFlower() {
+            const flower = document.createElement('div');
+            flower.className = 'flower';
+            flower.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+            flower.style.left = Math.random() * 100 + '%';
+            flower.style.fontSize = (15 + Math.random() * 20) + 'px';
+            flower.style.animationDuration = (8 + Math.random() * 7) + 's, ' + (3 + Math.random() * 2) + 's';
+            flower.style.animationDelay = Math.random() * 3 + 's';
+            container.appendChild(flower);
+            setTimeout(() => flower.remove(), 15000);
+        }
+        
+        for (let i = 0; i < 15; i++) setTimeout(createFlower, i * 300);
+        setInterval(createFlower, 800);
+    })();
+    </script>
 </body>
 </html>

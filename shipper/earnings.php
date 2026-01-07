@@ -58,8 +58,9 @@ $deliveryHistory = $stmt->fetchAll();
     <link rel="stylesheet" href="../assets/css/shipper.css">
     <style>
         .period-tabs { display: flex; gap: 10px; margin-bottom: 25px; }
-        .period-tab { padding: 10px 20px; background: white; border-radius: 25px; text-decoration: none; color: #666; }
-        .period-tab.active { background: #3498db; color: white; }
+        .period-tab { padding: 10px 20px; background: white; border-radius: 25px; text-decoration: none; color: #666; border: 2px solid #fecaca; }
+        .period-tab.active { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border-color: #dc2626; }
+        .period-tab:hover { border-color: #fbbf24; }
     </style>
 </head>
 <body>
@@ -114,7 +115,7 @@ $deliveryHistory = $stmt->fetchAll();
                         <tr>
                             <td><?= date('d/m/Y', strtotime($day['date'])) ?></td>
                             <td><?= $day['orders'] ?></td>
-                            <td><strong style="color: #3498db;"><?= number_format($day['earnings']) ?>đ</strong></td>
+                            <td><strong style="color: #dc2626;"><?= number_format($day['earnings']) ?>đ</strong></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>

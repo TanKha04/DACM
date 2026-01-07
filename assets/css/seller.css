@@ -1,19 +1,19 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', sans-serif; background: #ffffff; min-height: 100vh; }
+body { font-family: 'Segoe UI', sans-serif; background: #fff5f5; min-height: 100vh; }
 
-/* Sidebar - Xanh lá */
+/* Sidebar - Đỏ Tết */
 .sidebar { 
     position: fixed; 
     left: 0; 
     top: 0; 
     width: 260px; 
     height: 100vh; 
-    background: linear-gradient(135deg, #059669, #047857); 
+    background: linear-gradient(135deg, #dc2626, #b91c1c); 
     color: white; 
     padding: 0; 
     z-index: 100; 
     overflow-y: auto;
-    box-shadow: 4px 0 25px rgba(0,0,0,0.1);
+    box-shadow: 4px 0 25px rgba(220,38,38,0.3);
 }
 .sidebar-header { 
     padding: 25px 20px; 
@@ -119,7 +119,7 @@ body { font-family: 'Segoe UI', sans-serif; background: #ffffff; min-height: 100
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #059669, #10b981);
+    background: linear-gradient(90deg, #dc2626, #f59e0b);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -137,7 +137,7 @@ body { font-family: 'Segoe UI', sans-serif; background: #ffffff; min-height: 100
 .stat-card .value { 
     font-size: 32px; 
     font-weight: 700; 
-    color: #059669;
+    color: #dc2626;
     margin-bottom: 8px;
 }
 .stat-card .label { 
@@ -223,7 +223,7 @@ tbody tr:hover {
 .badge-active { background: #d1fae5; color: #065f46; }
 .badge-hidden { background: #f1f5f9; color: #64748b; }
 
-/* Buttons - Xanh lá */
+/* Buttons - Đỏ Tết */
 .btn { 
     padding: 12px 24px; 
     border: none; 
@@ -238,13 +238,13 @@ tbody tr:hover {
     font-size: 14px;
 }
 .btn-primary { 
-    background: linear-gradient(135deg, #059669, #047857);
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
     color: white;
-    box-shadow: 0 4px 14px rgba(5,150,105,0.35);
+    box-shadow: 0 4px 14px rgba(220,38,38,0.35);
 }
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(5,150,105,0.45);
+    box-shadow: 0 6px 20px rgba(220,38,38,0.45);
 }
 .btn-secondary { 
     background: #f1f5f9;
@@ -297,8 +297,8 @@ tbody tr:hover {
 .form-group textarea:focus, 
 .form-group select:focus { 
     outline: none; 
-    border-color: #059669;
-    box-shadow: 0 0 0 3px rgba(5,150,105,0.15);
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.15);
 }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
@@ -406,7 +406,7 @@ tbody tr:hover {
     color: #1e293b;
 }
 .product-card .price { 
-    color: #059669; 
+    color: #dc2626; 
     font-weight: 700;
     font-size: 18px;
 }

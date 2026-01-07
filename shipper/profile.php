@@ -98,13 +98,13 @@ $greeting = $hour < 12 ? 'Chào buổi sáng' : ($hour < 18 ? 'Chào buổi chi�
         </div>
         
         <style>
-        .profile-banner { background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1200&h=400&fit=crop'); background-size: cover; background-position: center; border-radius: 20px; padding: 40px; color: white; margin-bottom: 30px; position: relative; }
-        .profile-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(147,51,234,0.3)); border-radius: 20px; }
+        .profile-banner { background: linear-gradient(135deg, rgba(185,28,28,0.9), rgba(220,38,38,0.85)), url('https://images.unsplash.com/photo-1526367790999-0150786686a2?w=1200&h=400&fit=crop'); background-size: cover; background-position: center; border-radius: 20px; padding: 40px; color: white; margin-bottom: 30px; position: relative; border: 3px solid #fbbf24; }
+        .profile-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: transparent; border-radius: 20px; }
         .profile-banner-content { position: relative; z-index: 1; display: flex; align-items: center; gap: 30px; }
         .profile-avatar-large { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .profile-banner-info h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
         .profile-banner-badges { display: flex; gap: 10px; margin-bottom: 10px; }
-        .profile-badge { background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; font-size: 13px; }
+        .profile-badge { background: rgba(251,191,36,0.3); border: 1px solid #fbbf24; padding: 6px 16px; border-radius: 20px; font-size: 13px; color: #fef3c7; }
         .profile-stats-row { display: flex; gap: 30px; margin-top: 15px; }
         .profile-stat { text-align: center; }
         .profile-stat-value { font-size: 24px; font-weight: bold; }
@@ -113,7 +113,7 @@ $greeting = $hour < 12 ? 'Chào buổi sáng' : ($hour < 18 ? 'Chào buổi chi�
         .tabs { display: flex; gap: 5px; background: white; padding: 8px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
         .tab-btn { flex: 1; padding: 14px 20px; background: transparent; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: #666; transition: all 0.3s; }
         .tab-btn:hover { background: #f5f5f5; }
-        .tab-btn.active { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
+        .tab-btn.active { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
         .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -123,17 +123,17 @@ $greeting = $hour < 12 ? 'Chào buổi sáng' : ($hour < 18 ? 'Chào buổi chi�
         .info-card { background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 15px; padding: 20px; display: flex; align-items: center; gap: 15px; transition: transform 0.3s; }
         .info-card:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         .info-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-        .info-icon.email { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
-        .info-icon.phone { background: linear-gradient(135deg, #10b981, #34d399); }
-        .info-icon.address { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-        .info-icon.date { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .info-icon.email { background: linear-gradient(135deg, #dc2626, #ef4444); }
+        .info-icon.phone { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+        .info-icon.address { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+        .info-icon.date { background: linear-gradient(135deg, #fbbf24, #d97706); }
         .info-content { flex: 1; }
         .info-label { font-size: 12px; color: #666; margin-bottom: 4px; }
         .info-value { font-size: 15px; font-weight: 600; color: #333; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
         .form-group input { width: 100%; padding: 14px 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; transition: all 0.3s; background: #f9fafb; }
-        .form-group input:focus { outline: none; border-color: #3b82f6; background: white; }
+        .form-group input:focus { outline: none; border-color: #dc2626; background: white; }
         .form-group input:disabled { background: #f3f4f6; color: #9ca3af; }
         .form-group small { color: #9ca3af; font-size: 12px; margin-top: 5px; display: block; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -143,10 +143,10 @@ $greeting = $hour < 12 ? 'Chào buổi sáng' : ($hour < 18 ? 'Chào buổi chi�
         .avatar-upload label { display: block; cursor: pointer; }
         .avatar-upload .profile-avatar-edit { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 5px 20px rgba(0,0,0,0.15); transition: transform 0.3s; }
         .avatar-upload:hover .profile-avatar-edit { transform: scale(1.05); }
-        .avatar-upload .upload-overlay { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .avatar-upload .upload-overlay { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; }
         .avatar-hint { color: #666; font-size: 13px; margin-top: 15px; }
         .btn { padding: 14px 30px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
+        .btn-primary { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
         .btn-primary:hover { transform: translateY(-2px); }
         .btn-danger { background: linear-gradient(135deg, #ef4444, #f87171); color: white; }
         .btn-danger:hover { transform: translateY(-2px); }
