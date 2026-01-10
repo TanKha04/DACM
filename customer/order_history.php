@@ -96,7 +96,7 @@ $stmt->execute($params);
 $orders = $stmt->fetchAll();
 
 // Thống kê
-$stmt = $pdo->prepare("SELECT COUNT(*) as total_orders, COALESCE(SUM(total_amount), 0) as total_spent 
+$stmt = $pdo->prepare("SELECT COUNT(*) as total_orders, COALESCE(SUM(total_amount + shipping_fee), 0) as total_spent 
                        FROM orders WHERE customer_id = ? AND status = 'delivered'");
 $stmt->execute([$userId]);
 $stats = $stmt->fetch();

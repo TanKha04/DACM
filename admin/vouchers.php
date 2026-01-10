@@ -99,6 +99,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if ($action === 'delete_promo') {
         $id = (int)($_POST['promo_id'] ?? 0);
+        // Xóa các bản ghi sử dụng khuyến mãi trước
+        $stmt = $pdo->prepare("DELETE FROM promotion_usage WHERE promotion_id = ?");
+        $stmt->execute([$id]);
+        // Sau đó xóa khuyến mãi
         $stmt = $pdo->prepare("DELETE FROM promotions WHERE id = ?");
         $stmt->execute([$id]);
         $message = 'success:Đã xóa khuyến mãi';

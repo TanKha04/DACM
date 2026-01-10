@@ -30,8 +30,12 @@ $sellerId = $order['seller_id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $message = trim($_POST['message']);
     if ($message) {
-        $stmt = $pdo->prepare("INSERT INTO order_messages (order_id, sender_id, receiver_id, message) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$orderId, $userId, $sellerId, $message]);
+        try {
+            $stmt = $pdo->prepare("INSERT INTO order_messages (order_id, sender_id, receiver_id, message) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$orderId, $userId, $sellerId, $message]);
+        } catch (PDOException $e) {
+            error_log("Chat error: " . $e->getMessage());
+        }
     }
     header("Location: chat_shop.php?order_id=$orderId");
     exit;
@@ -123,8 +127,18 @@ $messages = $stmt->fetchAll();
     const chatMessages = document.getElementById('chatMessages');
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
-    // Auto refresh mỗi 5 giây
-    setTimeout(() => location.reload(), 5000);
+    // Chỉ auto refresh khi không đang gõ tin nhắn
+    const messageInput = document.querySelector('input[name="message"]');
+    let isTyping = false;
+    
+    messageInput.addEventListener('focus', () => isTyping = true);
+    messageInput.addEventListener('blur', () => {
+        if (messageInput.value.trim() === '') isTyping = false;
+    });
+    
+    setInterval(() => {
+        if (!isTyping) location.reload();
+    }, 5000);
     </script>
     
     <?php include '../includes/customer_footer.php'; ?>

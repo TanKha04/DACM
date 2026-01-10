@@ -51,9 +51,6 @@ $base = getBaseUrl();
         <a href="<?= $base ?>/admin/products.php" class="<?= $currentPage == 'products.php' ? 'active' : '' ?>">
             <span>🍕</span> Quản lý Sản phẩm
         </a>
-        <a href="<?= $base ?>/admin/categories.php" class="<?= $currentPage == 'categories.php' ? 'active' : '' ?>">
-            <span>🏷️</span> Danh mục món
-        </a>
         <div class="divider"></div>
         <a href="<?= $base ?>/admin/reviews.php" class="<?= $currentPage == 'reviews.php' ? 'active' : '' ?>">
             <span>💬</span> Quản lý Đánh giá

@@ -1,0 +1,497 @@
+================================================================================
+                    FASTFOOD DELIVERY SYSTEM - MÔ TẢ NHIỆM VỤ CÁC FILE
+================================================================================
+
+================================================================================
+                              1. THƯ MỤC GỐC
+================================================================================
+
+index.php
+    - Trang chủ chính, redirect người dùng đến home.php
+
+home.php
+    - Trang landing page giới thiệu hệ thống
+
+403.php
+    - Trang hiển thị lỗi khi không có quyền truy cập
+
+README.md
+    - Tài liệu hướng dẫn cài đặt và sử dụng hệ thống
+
+logo.png
+    - Logo của hệ thống FastFood Delivery
+
+================================================================================
+                              2. THƯ MỤC CONFIG
+================================================================================
+
+config/database.php
+    - Cấu hình kết nối cơ sở dữ liệu MySQL
+    - Định nghĩa các hằng số DB_HOST, DB_NAME, DB_USER, DB_PASS
+    - Hàm getConnection() để lấy kết nối PDO
+
+config/location.php
+    - Cấu hình vị trí mặc định (Trà Vinh)
+    - Định nghĩa bán kính tìm kiếm shipper (10km)
+    - Định nghĩa bán kính giao hàng tối đa (10km)
+    - Hàm getDefaultLocation() trả về tọa độ mặc định
+
+================================================================================
+                              3. THƯ MỤC DATABASE
+================================================================================
+
+database/schema.sql
+    - Script tạo toàn bộ cấu trúc database
+    - Tạo các bảng: users, shops, products, orders, cart, reviews, vouchers...
+    - Chèn dữ liệu mẫu (categories, shipping_config)
+
+database/add_location_updated.sql
+    - Script thêm cột vị trí (lat, lng) cho bảng users
+
+database/add_delivery_coords.sql
+    - Script thêm tọa độ giao hàng cho bảng orders
+
+database/fix_foreign_keys.sql
+    - Script sửa lỗi khóa ngoại trong database
+
+database/delete_users.sql
+    - Script xóa users và dữ liệu liên quan
+
+================================================================================
+                              4. THƯ MỤC AUTH (Xác thực)
+================================================================================
+
+auth/login.php
+    - Trang đăng nhập với giao diện đẹp
+    - Hỗ trợ đăng ký 3 loại tài khoản: Người mua, Người bán, Shipper
+    - Xử lý xác thực email/password
+    - Redirect theo role sau khi đăng nhập
+
+auth/register.php
+    - Trang đăng ký tài khoản riêng
+    - Validate thông tin đăng ký
+    - Mặc định tạo tài khoản customer
+
+auth/logout.php
+    - Xử lý đăng xuất
+    - Hủy session và cookie
+    - Redirect về trang login
+
+================================================================================
+                              5. THƯ MỤC INCLUDES (Components dùng chung)
+================================================================================
+
+includes/auth.php
+    - Các hàm helper xác thực và phân quyền
+    - isLoggedIn() - Kiểm tra đăng nhập
+    - isAdmin() - Kiểm tra quyền admin
+    - requireLogin() - Yêu cầu đăng nhập
+    - requireAdmin() - Yêu cầu quyền admin
+    - requireRole() - Yêu cầu role cụ thể
+    - redirectByRole() - Redirect theo vai trò
+
+includes/admin_sidebar.php
+    - Sidebar menu cho trang Admin
+    - Hiển thị các link: Dashboard, Users, Shops, Orders, Finance...
+
+includes/seller_sidebar.php
+    - Sidebar menu cho trang Seller
+    - Hiển thị các link: Dashboard, Products, Orders, Revenue...
+
+includes/shipper_sidebar.php
+    - Sidebar menu cho trang Shipper
+    - Hiển thị các link: Dashboard, Orders, Earnings...
+
+includes/customer_header.php
+    - Header cho trang Customer
+    - Hiển thị logo, menu, giỏ hàng, thông báo
+
+includes/maps_helper.php
+    - Các hàm helper cho bản đồ
+    - Tính khoảng cách giữa 2 điểm
+    - Hiển thị bản đồ OpenStreetMap
+
+================================================================================
+                              6. THƯ MỤC ADMIN (Quản trị viên)
+================================================================================
+
+admin/dashboard.php
+    - Trang chủ admin với thống kê tổng quan
+    - Hiển thị: tổng users, orders, doanh thu, shop chờ duyệt
+    - Thống kê hôm nay (đơn hàng, doanh thu)
+    - Danh sách đơn hàng mới nhất, users mới
+    - Giao diện theme Tết với hoa mai rơi
+
+admin/users.php
+    - Quản lý tất cả người dùng
+    - Cấp quyền Seller/Shipper cho user
+    - Khóa/Mở khóa tài khoản
+    - Xóa tài khoản và dữ liệu liên quan
+    - Cấp/Hủy quyền Admin
+
+admin/shops.php
+    - Quản lý cửa hàng
+    - Duyệt/Từ chối shop đăng ký
+    - Khóa/Mở khóa shop
+    - Xem chi tiết: ảnh, vị trí, giấy ATTP
+    - Lọc theo trạng thái (pending, active, blocked)
+
+admin/orders.php
+    - Quản lý tất cả đơn hàng
+    - Cập nhật trạng thái đơn hàng
+    - Hủy đơn hàng
+    - Lọc theo trạng thái
+
+admin/products.php
+    - Quản lý sản phẩm toàn hệ thống
+    - Xem/Ẩn/Xóa sản phẩm
+    - Lọc theo shop, category
+
+admin/categories.php
+    - Quản lý danh mục món ăn
+    - Thêm/Sửa/Xóa danh mục
+    - Sắp xếp thứ tự hiển thị
+
+admin/vouchers.php
+    - Quản lý voucher toàn hệ thống
+    - Tạo mã giảm giá (%, cố định, freeship)
+    - Cấu hình điều kiện sử dụng
+
+admin/finance.php
+    - Báo cáo tài chính
+    - Thống kê doanh thu theo thời gian
+    - Hoa hồng từ các shop
+
+admin/reviews.php
+    - Quản lý đánh giá
+    - Xem/Ẩn đánh giá không phù hợp
+
+admin/support.php
+    - Xử lý yêu cầu hỗ trợ từ users
+    - Trả lời ticket
+    - Đóng/Mở ticket
+
+admin/notifications.php
+    - Quản lý thông báo hệ thống
+    - Gửi thông báo đến users
+
+admin/settings.php
+    - Cài đặt hệ thống
+    - Cấu hình phí ship, hoa hồng
+    - Cài đặt chung
+
+admin/profile.php
+    - Thông tin cá nhân admin
+    - Đổi mật khẩu
+
+admin/messages.php
+    - Tin nhắn hệ thống
+
+admin/process_request.php
+    - Xử lý yêu cầu cấp quyền từ users
+
+================================================================================
+                              7. THƯ MỤC SELLER (Người bán)
+================================================================================
+
+seller/dashboard.php
+    - Trang chủ seller
+    - Thống kê: đơn hàng, doanh thu, sản phẩm
+    - Đơn hàng mới cần xử lý
+
+seller/register_shop.php
+    - Đăng ký cửa hàng mới
+    - Upload ảnh, giấy ATTP
+    - Nhập thông tin địa chỉ, vị trí
+
+seller/shop.php
+    - Quản lý thông tin cửa hàng
+    - Cập nhật ảnh, mô tả, địa chỉ
+    - Cập nhật vị trí GPS
+
+seller/products.php
+    - Quản lý sản phẩm của shop
+    - Thêm/Sửa/Xóa sản phẩm
+    - Upload ảnh sản phẩm
+
+seller/combos.php
+    - Quản lý combo sản phẩm
+    - Tạo combo với nhiều món
+    - Đặt giá combo ưu đãi
+
+seller/orders.php
+    - Quản lý đơn hàng của shop
+    - Xác nhận/Từ chối đơn
+    - Cập nhật trạng thái chuẩn bị
+
+seller/order_detail.php
+    - Chi tiết đơn hàng
+    - Danh sách sản phẩm
+    - Thông tin khách hàng, shipper
+
+seller/promotions.php
+    - Quản lý khuyến mãi của shop
+    - Tạo mã giảm giá riêng
+    - Chương trình tặng quà
+
+seller/revenue.php
+    - Báo cáo doanh thu
+    - Thống kê theo ngày/tuần/tháng
+    - Biểu đồ doanh thu
+
+seller/reviews.php
+    - Xem đánh giá từ khách hàng
+    - Trả lời đánh giá
+
+seller/messages.php
+    - Tin nhắn với khách hàng
+
+seller/chat_customer.php
+    - Chat trực tiếp với khách hàng theo đơn hàng
+
+seller/support.php
+    - Gửi yêu cầu hỗ trợ đến admin
+
+================================================================================
+                              8. THƯ MỤC SHIPPER (Người giao hàng)
+================================================================================
+
+shipper/dashboard.php
+    - Trang chủ shipper
+    - Đơn hàng có thể nhận
+    - Thống kê thu nhập hôm nay
+
+shipper/my_orders.php
+    - Danh sách đơn hàng đang giao
+    - Lịch sử đơn đã giao
+
+shipper/order_map.php
+    - Bản đồ hiển thị vị trí đơn hàng
+    - Chỉ đường từ shop đến khách
+
+shipper/update_status.php
+    - Cập nhật trạng thái giao hàng
+    - Đã lấy hàng, đang giao, đã giao
+
+shipper/set_location.php
+    - Cập nhật vị trí hiện tại của shipper
+    - Sử dụng GPS
+
+shipper/available.php
+    - Bật/Tắt trạng thái sẵn sàng nhận đơn
+
+shipper/earnings.php
+    - Thống kê thu nhập
+    - Lịch sử thanh toán
+
+shipper/profile.php
+    - Thông tin cá nhân shipper
+    - Cập nhật xe, biển số
+
+shipper/messages.php
+    - Tin nhắn hệ thống
+
+shipper/chat_customer.php
+    - Chat với khách hàng theo đơn hàng
+
+shipper/notifications.php
+    - Thông báo đơn hàng mới
+    - Thông báo hệ thống
+
+================================================================================
+                              9. THƯ MỤC CUSTOMER (Khách hàng)
+================================================================================
+
+customer/index.php
+    - Trang chủ khách hàng
+    - Danh sách cửa hàng gần
+    - Banner khuyến mãi
+    - Danh mục món ăn
+
+customer/shops.php
+    - Danh sách tất cả cửa hàng
+    - Lọc theo khoảng cách, đánh giá
+
+customer/shops_map.php
+    - Bản đồ hiển thị các cửa hàng
+    - Tìm shop gần nhất
+
+customer/shop_detail.php
+    - Chi tiết cửa hàng
+    - Danh sách sản phẩm
+    - Đánh giá của shop
+
+customer/search.php
+    - Tìm kiếm sản phẩm, cửa hàng
+    - Lọc theo giá, category
+
+customer/cart.php
+    - Giỏ hàng
+    - Thêm/Bớt số lượng
+    - Xóa sản phẩm
+
+customer/checkout.php
+    - Thanh toán đơn hàng
+    - Chọn địa chỉ giao hàng
+    - Áp dụng mã giảm giá
+    - Chọn phương thức thanh toán
+
+customer/orders.php
+    - Danh sách đơn hàng
+    - Lọc theo trạng thái
+
+customer/order_detail.php
+    - Chi tiết đơn hàng
+    - Danh sách sản phẩm
+    - Thông tin giao hàng
+
+customer/order_status.php
+    - Trạng thái đơn hàng realtime
+
+customer/order_history.php
+    - Lịch sử đơn hàng đã hoàn thành
+
+customer/track_order.php
+    - Theo dõi vị trí shipper trên bản đồ
+
+customer/review.php
+    - Đánh giá đơn hàng sau khi nhận
+    - Đánh giá shop, shipper
+
+customer/reviews.php
+    - Lịch sử đánh giá của tôi
+
+customer/payments.php
+    - Lịch sử thanh toán
+    - Phương thức thanh toán
+
+customer/profile.php
+    - Thông tin cá nhân
+    - Cập nhật địa chỉ, SĐT
+
+customer/set_location.php
+    - Cập nhật vị trí giao hàng
+    - Chọn trên bản đồ
+
+customer/chat_shop.php
+    - Chat với cửa hàng theo đơn hàng
+
+customer/chat_shipper.php
+    - Chat với shipper theo đơn hàng
+
+customer/notifications.php
+    - Thông báo đơn hàng
+    - Thông báo khuyến mãi
+
+customer/support.php
+    - Gửi yêu cầu hỗ trợ
+
+customer/request_role.php
+    - Yêu cầu cấp quyền Seller/Shipper
+
+================================================================================
+                              10. THƯ MỤC API
+================================================================================
+
+api/add_to_cart.php
+    - API thêm sản phẩm vào giỏ hàng
+    - Cập nhật số lượng
+    - Xóa khỏi giỏ
+
+api/products.php
+    - API lấy danh sách sản phẩm
+    - Tìm kiếm, lọc sản phẩm
+
+api/calculate_shipping.php
+    - API tính phí ship
+    - Dựa trên khoảng cách
+    - Áp dụng phí giờ cao điểm
+
+api/save_location.php
+    - API lưu vị trí người dùng
+
+api/save_shop_location.php
+    - API lưu vị trí cửa hàng
+
+api/shipper_location.php
+    - API cập nhật/lấy vị trí shipper
+
+api/check_new_orders.php
+    - API kiểm tra đơn hàng mới (cho seller)
+
+api/check_shipper_orders.php
+    - API kiểm tra đơn hàng cho shipper
+
+api/messages.php
+    - API gửi/nhận tin nhắn
+
+api/postman_collection.json
+    - Collection Postman để test API
+
+================================================================================
+                              11. THƯ MỤC ASSETS
+================================================================================
+
+assets/css/admin.css
+    - Style cho trang Admin
+    - Sidebar, cards, tables, buttons
+
+assets/css/seller.css
+    - Style cho trang Seller
+
+assets/css/shipper.css
+    - Style cho trang Shipper
+
+assets/css/customer.css
+    - Style cho trang Customer
+
+assets/css/tet-theme.css
+    - Theme Tết với màu đỏ vàng
+    - Hiệu ứng hoa mai rơi
+
+================================================================================
+                              12. THƯ MỤC UPLOADS
+================================================================================
+
+uploads/
+    - Thư mục chứa file upload
+    - Ảnh sản phẩm, shop, avatar
+    - Giấy chứng nhận ATTP
+
+================================================================================
+                              13. THƯ MỤC ẢNH MẪU
+================================================================================
+
+ảnh cửa hàng/
+    - Ảnh mẫu các cửa hàng
+
+Ảnh nước uống/
+    - Ảnh mẫu đồ uống
+
+Ảnh thức ăn/
+    - Ảnh mẫu thức ăn
+
+================================================================================
+                              14. THƯ MỤC DOCS & DIAGRAMS
+================================================================================
+
+docs/
+    - Tài liệu hướng dẫn
+
+diagrams/
+    - Sơ đồ hệ thống
+    - ERD database
+    - Flowchart
+
+================================================================================
+                              15. THƯ MỤC TOOLS
+================================================================================
+
+tools/
+    - Các công cụ hỗ trợ
+    - Script import data
+    - Utilities
+
+================================================================================
+                                    KẾT THÚC
+================================================================================

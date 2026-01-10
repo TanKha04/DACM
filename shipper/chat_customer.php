@@ -41,9 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     exit;
 }
 
-// Lấy tin nhắn
-$stmt = $pdo->prepare("SELECT m.*, u.name as sender_name FROM order_messages m JOIN users u ON m.sender_id = u.id WHERE m.order_id = ? ORDER BY m.created_at ASC");
-$stmt->execute([$orderId]);
+// Lấy tin nhắn chỉ giữa shipper và customer
+$stmt = $pdo->prepare("SELECT m.*, u.name as sender_name FROM order_messages m JOIN users u ON m.sender_id = u.id WHERE m.order_id = ? AND ((m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)) ORDER BY m.created_at ASC");
+$stmt->execute([$orderId, $userId, $customerId, $customerId, $userId]);
 $messages = $stmt->fetchAll();
 
 // Đánh dấu đã đọc

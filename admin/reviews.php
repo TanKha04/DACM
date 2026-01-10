@@ -10,6 +10,8 @@ requireAdmin();
 $pdo = getConnection();
 $message = '';
 $tab = $_GET['tab'] ?? 'shop';
+$selectedShopId = isset($_GET['shop_id']) ? (int)$_GET['shop_id'] : null;
+$selectedShipperId = isset($_GET['shipper_id']) ? (int)$_GET['shipper_id'] : null;
 
 // Xử lý actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -33,36 +35,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Lấy đánh giá cửa hàng
-$stmt = $pdo->query("SELECT r.*, u.name as user_name, s.name as shop_name 
-    FROM reviews r 
-    JOIN users u ON r.user_id = u.id 
-    JOIN shops s ON r.shop_id = s.id 
-    WHERE r.shop_id IS NOT NULL
-    ORDER BY r.created_at DESC LIMIT 100");
-$shopReviews = $stmt->fetchAll();
+// Lấy danh sách cửa hàng có đánh giá
+$stmt = $pdo->query("SELECT s.id, s.name, s.image,
+    COUNT(r.id) as total_reviews,
+    ROUND(AVG(r.rating), 1) as avg_rating,
+    SUM(CASE WHEN r.rating = 5 THEN 1 ELSE 0 END) as five_star
+    FROM shops s 
+    JOIN reviews r ON r.shop_id = s.id
+    GROUP BY s.id
+    ORDER BY total_reviews DESC");
+$shopList = $stmt->fetchAll();
 
-// Lấy đánh giá shipper
-$stmt = $pdo->query("SELECT r.*, u.name as user_name, sh.name as shipper_name 
-    FROM reviews r 
-    JOIN users u ON r.user_id = u.id 
-    JOIN users sh ON r.shipper_id = sh.id 
-    WHERE r.shipper_id IS NOT NULL
-    ORDER BY r.created_at DESC LIMIT 100");
-$shipperReviews = $stmt->fetchAll();
+// Lấy danh sách shipper có đánh giá
+$stmt = $pdo->query("SELECT u.id, u.name, u.avatar,
+    COUNT(r.id) as total_reviews,
+    ROUND(AVG(r.rating), 1) as avg_rating,
+    SUM(CASE WHEN r.rating = 5 THEN 1 ELSE 0 END) as five_star
+    FROM users u 
+    JOIN reviews r ON r.shipper_id = u.id
+    WHERE u.role = 'shipper'
+    GROUP BY u.id
+    ORDER BY total_reviews DESC");
+$shipperList = $stmt->fetchAll();
 
-// Thống kê
-$shopStats = [
-    'total' => count($shopReviews),
-    'avg_rating' => $shopReviews ? round(array_sum(array_column($shopReviews, 'rating')) / count($shopReviews), 1) : 0,
-    'five_star' => count(array_filter($shopReviews, fn($r) => $r['rating'] == 5))
-];
+// Lấy đánh giá cửa hàng (nếu có chọn shop)
+$shopReviews = [];
+$selectedShop = null;
+if ($selectedShopId) {
+    $stmt = $pdo->prepare("SELECT r.*, u.name as user_name, s.name as shop_name 
+        FROM reviews r 
+        JOIN users u ON r.user_id = u.id 
+        JOIN shops s ON r.shop_id = s.id 
+        WHERE r.shop_id = ?
+        ORDER BY r.created_at DESC LIMIT 100");
+    $stmt->execute([$selectedShopId]);
+    $shopReviews = $stmt->fetchAll();
+    
+    // Lấy thông tin shop được chọn
+    foreach ($shopList as $shop) {
+        if ($shop['id'] == $selectedShopId) {
+            $selectedShop = $shop;
+            break;
+        }
+    }
+}
 
-$shipperStats = [
-    'total' => count($shipperReviews),
-    'avg_rating' => $shipperReviews ? round(array_sum(array_column($shipperReviews, 'rating')) / count($shipperReviews), 1) : 0,
-    'five_star' => count(array_filter($shipperReviews, fn($r) => $r['rating'] == 5))
-];
+// Lấy đánh giá shipper (nếu có chọn shipper)
+$shipperReviews = [];
+$selectedShipper = null;
+if ($selectedShipperId) {
+    $stmt = $pdo->prepare("SELECT r.*, u.name as user_name, sh.name as shipper_name 
+        FROM reviews r 
+        JOIN users u ON r.user_id = u.id 
+        JOIN users sh ON r.shipper_id = sh.id 
+        WHERE r.shipper_id = ?
+        ORDER BY r.created_at DESC LIMIT 100");
+    $stmt->execute([$selectedShipperId]);
+    $shipperReviews = $stmt->fetchAll();
+    
+    // Lấy thông tin shipper được chọn
+    foreach ($shipperList as $shipper) {
+        if ($shipper['id'] == $selectedShipperId) {
+            $selectedShipper = $shipper;
+            break;
+        }
+    }
+}
+
+// Thống kê tổng cho shop
+$totalShopReviews = array_sum(array_column($shopList, 'total_reviews'));
+
+// Thống kê tổng cho shipper
+$totalShipperReviews = array_sum(array_column($shipperList, 'total_reviews'));
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -87,6 +131,29 @@ $shipperStats = [
         .rating-3 { background: #fff3cd; color: #856404; }
         .rating-2 { background: #f8d7da; color: #721c24; }
         .rating-1 { background: #f8d7da; color: #721c24; }
+        
+        /* Shop/Shipper list styles */
+        .entity-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .entity-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+        .entity-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .entity-card.active { border-color: #e74c3c; background: #fff5f5; }
+        .entity-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .entity-avatar { width: 50px; height: 50px; border-radius: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; }
+        .entity-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .entity-name { font-weight: 600; font-size: 15px; color: #2c3e50; }
+        .entity-stats { display: flex; justify-content: space-between; background: #f8f9fa; border-radius: 8px; padding: 10px; }
+        .entity-stat { text-align: center; }
+        .entity-stat-value { font-weight: bold; font-size: 16px; color: #e74c3c; }
+        .entity-stat-label { font-size: 11px; color: #7f8c8d; }
+        
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f8f9fa; border-radius: 8px; color: #2c3e50; text-decoration: none; margin-bottom: 20px; transition: all 0.3s; }
+        .back-btn:hover { background: #e9ecef; }
+        
+        .selected-entity-header { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .selected-entity-info { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .selected-entity-avatar { width: 60px; height: 60px; border-radius: 12px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 30px; overflow: hidden; }
+        .selected-entity-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .selected-entity-name { font-size: 20px; font-weight: bold; color: #2c3e50; }
     </style>
 </head>
 <body>
@@ -106,37 +173,55 @@ $shipperStats = [
         <!-- Tabs -->
         <div class="tabs" style="margin-bottom: 25px;">
             <a href="?tab=shop" class="tab <?= $tab === 'shop' ? 'active' : '' ?>">
-                🏪 Đánh giá Cửa hàng <span class="count"><?= $shopStats['total'] ?></span>
+                🏪 Đánh giá Cửa hàng <span class="count"><?= $totalShopReviews ?></span>
             </a>
             <a href="?tab=shipper" class="tab <?= $tab === 'shipper' ? 'active' : '' ?>">
-                🛵 Đánh giá Shipper <span class="count"><?= $shipperStats['total'] ?></span>
+                🛵 Đánh giá Shipper <span class="count"><?= $totalShipperReviews ?></span>
             </a>
         </div>
         
         <?php if ($tab === 'shop'): ?>
         <!-- Tab Đánh giá Cửa hàng -->
-        <div class="stats-grid" style="margin-bottom: 25px;">
-            <div class="stat-card blue">
-                <div class="icon">📝</div>
-                <div class="value"><?= $shopStats['total'] ?></div>
-                <div class="label">Tổng đánh giá</div>
+        
+        <?php if ($selectedShopId && $selectedShop): ?>
+        <!-- Hiển thị đánh giá của cửa hàng được chọn -->
+        <a href="?tab=shop" class="back-btn">← Quay lại danh sách cửa hàng</a>
+        
+        <div class="selected-entity-header">
+            <div class="selected-entity-info">
+                <div class="selected-entity-avatar">
+                    <?php if ($selectedShop['image']): ?>
+                    <img src="../<?= htmlspecialchars($selectedShop['image']) ?>" alt="<?= htmlspecialchars($selectedShop['name']) ?>">
+                    <?php else: ?>
+                    🏪
+                    <?php endif; ?>
+                </div>
+                <div class="selected-entity-name"><?= htmlspecialchars($selectedShop['name']) ?></div>
             </div>
-            <div class="stat-card orange">
-                <div class="icon">⭐</div>
-                <div class="value"><?= $shopStats['avg_rating'] ?></div>
-                <div class="label">Điểm trung bình</div>
-            </div>
-            <div class="stat-card green">
-                <div class="icon">🌟</div>
-                <div class="value"><?= $shopStats['five_star'] ?></div>
-                <div class="label">Đánh giá 5 sao</div>
+            
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="icon">📝</div>
+                    <div class="value"><?= $selectedShop['total_reviews'] ?></div>
+                    <div class="label">Tổng đánh giá</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="icon">⭐</div>
+                    <div class="value"><?= $selectedShop['avg_rating'] ?? 0 ?></div>
+                    <div class="label">Điểm trung bình</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="icon">🌟</div>
+                    <div class="value"><?= $selectedShop['five_star'] ?></div>
+                    <div class="label">Đánh giá 5 sao</div>
+                </div>
             </div>
         </div>
         
         <?php if (empty($shopReviews)): ?>
         <div class="card" style="text-align: center; padding: 50px;">
             <p style="font-size: 60px;">🏪</p>
-            <h2>Chưa có đánh giá cửa hàng</h2>
+            <h2>Chưa có đánh giá cho cửa hàng này</h2>
         </div>
         <?php else: ?>
         <?php foreach ($shopReviews as $review): ?>
@@ -186,29 +271,90 @@ $shipperStats = [
         <?php endif; ?>
         
         <?php else: ?>
+        <!-- Hiển thị danh sách cửa hàng -->
+        <h3 style="margin-bottom: 15px;">📋 Chọn cửa hàng để xem đánh giá</h3>
+        
+        <?php if (empty($shopList)): ?>
+        <div class="card" style="text-align: center; padding: 50px;">
+            <p style="font-size: 60px;">🏪</p>
+            <h2>Chưa có cửa hàng nào được đánh giá</h2>
+        </div>
+        <?php else: ?>
+        <div class="entity-list">
+            <?php foreach ($shopList as $shop): ?>
+            <a href="?tab=shop&shop_id=<?= $shop['id'] ?>" class="entity-card">
+                <div class="entity-card-header">
+                    <div class="entity-avatar">
+                        <?php if ($shop['image']): ?>
+                        <img src="../<?= htmlspecialchars($shop['image']) ?>" alt="<?= htmlspecialchars($shop['name']) ?>">
+                        <?php else: ?>
+                        🏪
+                        <?php endif; ?>
+                    </div>
+                    <div class="entity-name"><?= htmlspecialchars($shop['name']) ?></div>
+                </div>
+                <div class="entity-stats">
+                    <div class="entity-stat">
+                        <div class="entity-stat-value"><?= $shop['total_reviews'] ?></div>
+                        <div class="entity-stat-label">Đánh giá</div>
+                    </div>
+                    <div class="entity-stat">
+                        <div class="entity-stat-value"><?= $shop['avg_rating'] ?? 0 ?> ⭐</div>
+                        <div class="entity-stat-label">Trung bình</div>
+                    </div>
+                    <div class="entity-stat">
+                        <div class="entity-stat-value"><?= $shop['five_star'] ?></div>
+                        <div class="entity-stat-label">5 sao</div>
+                    </div>
+                </div>
+            </a>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+        <?php endif; ?>
+        
+        <?php else: ?>
         <!-- Tab Đánh giá Shipper -->
-        <div class="stats-grid" style="margin-bottom: 25px;">
-            <div class="stat-card blue">
-                <div class="icon">📝</div>
-                <div class="value"><?= $shipperStats['total'] ?></div>
-                <div class="label">Tổng đánh giá</div>
+        
+        <?php if ($selectedShipperId && $selectedShipper): ?>
+        <!-- Hiển thị đánh giá của shipper được chọn -->
+        <a href="?tab=shipper" class="back-btn">← Quay lại danh sách shipper</a>
+        
+        <div class="selected-entity-header">
+            <div class="selected-entity-info">
+                <div class="selected-entity-avatar">
+                    <?php if ($selectedShipper['avatar']): ?>
+                    <img src="../<?= htmlspecialchars($selectedShipper['avatar']) ?>" alt="<?= htmlspecialchars($selectedShipper['name']) ?>">
+                    <?php else: ?>
+                    🛵
+                    <?php endif; ?>
+                </div>
+                <div class="selected-entity-name"><?= htmlspecialchars($selectedShipper['name']) ?></div>
             </div>
-            <div class="stat-card orange">
-                <div class="icon">⭐</div>
-                <div class="value"><?= $shipperStats['avg_rating'] ?></div>
-                <div class="label">Điểm trung bình</div>
-            </div>
-            <div class="stat-card green">
-                <div class="icon">🌟</div>
-                <div class="value"><?= $shipperStats['five_star'] ?></div>
-                <div class="label">Đánh giá 5 sao</div>
+            
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="icon">📝</div>
+                    <div class="value"><?= $selectedShipper['total_reviews'] ?></div>
+                    <div class="label">Tổng đánh giá</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="icon">⭐</div>
+                    <div class="value"><?= $selectedShipper['avg_rating'] ?? 0 ?></div>
+                    <div class="label">Điểm trung bình</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="icon">🌟</div>
+                    <div class="value"><?= $selectedShipper['five_star'] ?></div>
+                    <div class="label">Đánh giá 5 sao</div>
+                </div>
             </div>
         </div>
         
         <?php if (empty($shipperReviews)): ?>
         <div class="card" style="text-align: center; padding: 50px;">
             <p style="font-size: 60px;">🛵</p>
-            <h2>Chưa có đánh giá shipper</h2>
+            <h2>Chưa có đánh giá cho shipper này</h2>
         </div>
         <?php else: ?>
         <?php foreach ($shipperReviews as $review): ?>
@@ -256,6 +402,50 @@ $shipperStats = [
         </div>
         <?php endforeach; ?>
         <?php endif; ?>
+        
+        <?php else: ?>
+        <!-- Hiển thị danh sách shipper -->
+        <h3 style="margin-bottom: 15px;">📋 Chọn shipper để xem đánh giá</h3>
+        
+        <?php if (empty($shipperList)): ?>
+        <div class="card" style="text-align: center; padding: 50px;">
+            <p style="font-size: 60px;">🛵</p>
+            <h2>Chưa có shipper nào được đánh giá</h2>
+        </div>
+        <?php else: ?>
+        <div class="entity-list">
+            <?php foreach ($shipperList as $shipper): ?>
+            <a href="?tab=shipper&shipper_id=<?= $shipper['id'] ?>" class="entity-card">
+                <div class="entity-card-header">
+                    <div class="entity-avatar">
+                        <?php if ($shipper['avatar']): ?>
+                        <img src="../<?= htmlspecialchars($shipper['avatar']) ?>" alt="<?= htmlspecialchars($shipper['name']) ?>">
+                        <?php else: ?>
+                        🛵
+                        <?php endif; ?>
+                    </div>
+                    <div class="entity-name"><?= htmlspecialchars($shipper['name']) ?></div>
+                </div>
+                <div class="entity-stats">
+                    <div class="entity-stat">
+                        <div class="entity-stat-value"><?= $shipper['total_reviews'] ?></div>
+                        <div class="entity-stat-label">Đánh giá</div>
+                    </div>
+                    <div class="entity-stat">
+                        <div class="entity-stat-value"><?= $shipper['avg_rating'] ?? 0 ?> ⭐</div>
+                        <div class="entity-stat-label">Trung bình</div>
+                    </div>
+                    <div class="entity-stat">
+                        <div class="entity-stat-value"><?= $shipper['five_star'] ?></div>
+                        <div class="entity-stat-label">5 sao</div>
+                    </div>
+                </div>
+            </a>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+        <?php endif; ?>
+        
         <?php endif; ?>
     </div>
 </body>
